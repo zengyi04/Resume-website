@@ -1,0 +1,9 @@
+<svg width="840" height="840" viewBox="0 0 840 840" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="840" height="840" rx="88" fill="#163A63"/>
+  <circle cx="420" cy="300" r="230" fill="#E2E8F0"/>
+  <circle cx="420" cy="260" r="110" fill="#CBD5E1"/>
+  <path d="M250 520C250 442.68 312.68 380 390 380H450C527.32 380 590 442.68 590 520V560H250V520Z" fill="#CBD5E1"/>
+  <path d="M-60 700C30 598.667 190 548 420 548C650 548 810 598.667 900 700V840H-60V700Z" fill="#163A63"/>
+  <path d="M-40 690C68 600 221.333 555 420 555C618.667 555 772 600 880 690" stroke="white" stroke-width="42" stroke-linecap="round"/>
+  <text x="420" y="778" text-anchor="middle" fill="white" font-family="Inter, Arial, sans-serif" font-size="42" font-weight="700" letter-spacing="4">ADD PROFILE PHOTO</text>
+</svg>

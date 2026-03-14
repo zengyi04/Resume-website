@@ -25,9 +25,22 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 
+const PROFILE_IMAGE_SOURCES = [
+  '/images/profile-photo.png',
+  '/images/profile-photo.jpg',
+  '/images/profile-photo.jpeg',
+  '/images/profile-photo.webp'
+];
+const PROFILE_IMAGE_FALLBACK_SRC = '/images/profile-photo-placeholder.svg';
+
 export default function App() {
   const [activeTab, setActiveTab] = useState('home');
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [profileImageIndex, setProfileImageIndex] = useState(0);
+
+  useEffect(() => {
+    setProfileImageIndex(0);
+  }, []);
 
   const skills = [
     { name: "Python", category: "Language" },
@@ -150,13 +163,34 @@ export default function App() {
                 </div>
               </div>
               <div className="relative">
-                <div className="aspect-[4/5] rounded-[48px] bg-slate-100 overflow-hidden border-8 border-white shadow-2xl rotate-2 hover:rotate-0 transition-transform duration-500">
-                  <img 
-                    src="https://picsum.photos/seed/hamzengyi/800/1000" 
-                    alt="Ham Zeng Yi" 
-                    className="w-full h-full object-cover"
-                    referrerPolicy="no-referrer"
-                  />
+                <div className="relative mx-auto w-full max-w-[420px] aspect-square overflow-hidden rounded-[44px] bg-[#163a63] shadow-2xl shadow-slate-300/70">
+                  <div className="absolute inset-x-0 top-0 bottom-[18%] overflow-hidden rounded-t-[44px] bg-slate-200">
+                    <img
+                      src={PROFILE_IMAGE_SOURCES[profileImageIndex] ?? PROFILE_IMAGE_FALLBACK_SRC}
+                      alt="Ham Zeng Yi portrait"
+                      className="w-full h-full object-cover object-center"
+                      onError={(event) => {
+                        const image = event.currentTarget;
+
+                        if (image.src.endsWith(PROFILE_IMAGE_FALLBACK_SRC)) {
+                          return;
+                        }
+
+                        setProfileImageIndex((currentIndex) => {
+                          const nextIndex = currentIndex + 1;
+
+                          if (nextIndex >= PROFILE_IMAGE_SOURCES.length) {
+                            image.src = PROFILE_IMAGE_FALLBACK_SRC;
+                            return currentIndex;
+                          }
+
+                          return nextIndex;
+                        });
+                      }}
+                    />
+                  </div>
+                  <div className="absolute inset-x-0 bottom-0 h-[30%] bg-[#163a63]" />
+                  <div className="absolute inset-x-[-6%] bottom-[10%] h-[24%] rounded-t-[100%] bg-white" />
                 </div>
                 <div className="absolute -bottom-6 -right-6 bg-white p-6 rounded-3xl shadow-xl border border-slate-50 max-w-[200px]">
                   <p className="text-[10px] font-bold text-blue-600 uppercase tracking-widest mb-2">Availability</p>
