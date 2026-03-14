@@ -31,7 +31,7 @@ const PROFILE_IMAGE_SOURCES = [
   '/images/profile-photo.jpeg',
   '/images/profile-photo.webp'
 ];
-const PROFILE_IMAGE_FALLBACK_SRC = '/images/profile-photo-placeholder.svg';
+const PROFILE_IMAGE_FALLBACK_SRC = '/images/profile-photo-placeholder.jpg';
 
 export default function App() {
   const [activeTab, setActiveTab] = useState('home');
