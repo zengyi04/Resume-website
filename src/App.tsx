@@ -24,14 +24,18 @@ import {
   ExternalLink
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
+import profilePhotoFallback from './assets/profile-photo-placeholder.jpg';
+
+const withBaseUrl = (assetPath: string) => `${import.meta.env.BASE_URL}${assetPath}`;
 
 const PROFILE_IMAGE_SOURCES = [
-  '/images/profile-photo.png',
-  '/images/profile-photo.jpg',
-  '/images/profile-photo.jpeg',
-  '/images/profile-photo.webp'
-];
-const PROFILE_IMAGE_FALLBACK_SRC = '/images/profile-photo-placeholder.jpg';
+  'images/profile-photo.png',
+  'images/profile-photo.jpg',
+  'images/profile-photo.jpeg',
+  'images/profile-photo.webp'
+].map(withBaseUrl);
+
+const PROFILE_IMAGE_FALLBACK_SRC = profilePhotoFallback;
 
 export default function App() {
   const [activeTab, setActiveTab] = useState('home');
