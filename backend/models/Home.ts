@@ -15,7 +15,7 @@ const HomeSchema = new mongoose.Schema(
     linkedin: { type: String, required: true },
     skills: [SkillSchema],
   },
-  { timestamps: true }
+  { timestamps: true, collection: 'home' }
 );
 
 export default mongoose.model('Home', HomeSchema);

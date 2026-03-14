@@ -143,6 +143,65 @@ async function seed() {
   ]);
   console.log('✅ Education seeded (1)');
 
+  // ── MOCK DATA IN SEPARATE COLLECTIONS ─────────────────────────────────────
+  const db = mongoose.connection.db;
+  if (!db) {
+    throw new Error('MongoDB database connection is not available');
+  }
+
+  await db.collection('home_mock').deleteMany({});
+  await db.collection('home_mock').insertOne({
+    name: 'Mock User',
+    tagline: 'MOCK SOFTWARE ENGINEERING STUDENT',
+    description: 'Mock home profile data for testing and development.',
+    availability: 'Mock Availability Window',
+    email: 'mock@example.com',
+    linkedin: 'https://linkedin.com/in/mock-user',
+    skills: [
+      { name: 'MockScript', category: 'Language' },
+      { name: 'MockDB', category: 'Database' },
+    ],
+  });
+
+  await db.collection('experience_mock').deleteMany({});
+  await db.collection('experience_mock').insertMany([
+    {
+      title: 'Mock Hackathon',
+      role: 'Mock Developer',
+      date: 'JANUARY 2026',
+      language: 'TypeScript',
+      description: 'Mock experience entry for UI/API tests.',
+    },
+  ]);
+
+  await db.collection('committee_mock').deleteMany({});
+  await db.collection('committee_mock').insertMany([
+    { title: 'Mock Committee 2026', role: 'Mock Role', date: '2026' },
+  ]);
+
+  await db.collection('achievements_mock').deleteMany({});
+  await db.collection('achievements_mock').insertMany([
+    {
+      title: 'Mock Achievement',
+      status: 'Participant',
+      role: 'Mock Contributor',
+      date: '2026',
+      language: 'Mock Stack',
+      description: 'Mock achievement data for testing.',
+    },
+  ]);
+
+  await db.collection('education_mock').deleteMany({});
+  await db.collection('education_mock').insertMany([
+    {
+      institution: 'Mock University',
+      degree: 'Mock Bachelor Program',
+      period: '2020 - 2024',
+      cgpa: '4.00 / 4.00',
+    },
+  ]);
+  console.log('✅ Separate mock collections seeded');
+
   await mongoose.disconnect();
   console.log('\n🎉 All data has been saved to MongoDB successfully!');
 }

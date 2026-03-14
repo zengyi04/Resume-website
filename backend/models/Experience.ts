@@ -9,7 +9,7 @@ const ExperienceSchema = new mongoose.Schema(
     description: { type: String, required: true },
     order: { type: Number, default: 0 },
   },
-  { timestamps: true }
+  { timestamps: true, collection: 'experience' }
 );
 
 export default mongoose.model('Experience', ExperienceSchema);

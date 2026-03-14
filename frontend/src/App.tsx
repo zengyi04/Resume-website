@@ -359,7 +359,7 @@ export default function App() {
   const [achievements, setAchievements] = useState<Achievement[]>([]);
   const [educations, setEducations] = useState<EducationEntry[]>([]);
   const [dataLoading, setDataLoading] = useState(true);
-
+    const [dataError, setDataError] = useState(false);
   // ── Admin UI state ───────────────────────────────────────────────────────
   const [modal, setModal] = useState<ModalState | null>(null);
   const [deleteConfirm, setDeleteConfirm] = useState<{ id: string; section: string; title: string } | null>(null);
@@ -382,6 +382,7 @@ export default function App() {
   // ── Fetch all data from API ───────────────────────────────────────────────
   const fetchAll = useCallback(async () => {
     setDataLoading(true);
+      setDataError(false);
     try {
       const [home, exp, comm, ach, edu] = await Promise.all([
         api.getHome(),
@@ -397,6 +398,7 @@ export default function App() {
       setEducations(edu);
     } catch (e) {
       console.error('Failed to load data from API:', e);
+        setDataError(true);
     } finally {
       setDataLoading(false);
     }
@@ -790,6 +792,27 @@ export default function App() {
         </div>
       );
     }
+      if (dataError || !homeData) {
+        return (
+          <div className="max-w-xl mx-auto py-24 px-6 text-center">
+            <div className="w-16 h-16 rounded-3xl bg-amber-50 flex items-center justify-center text-amber-500 mx-auto mb-6">
+              <AlertTriangle size={32} />
+            </div>
+            <h2 className="text-2xl font-black tracking-tighter text-slate-900 mb-4">Backend not connected</h2>
+            <p className="text-slate-500 font-light mb-8 leading-relaxed">
+              The API server is not reachable. To connect the database:
+            </p>
+            <ol className="text-left bg-slate-50 rounded-3xl p-8 space-y-4 text-sm font-medium text-slate-700 mb-8">
+              <li>1. Open <code className="bg-white px-2 py-0.5 rounded-lg border border-slate-200 font-mono text-xs">backend/.env</code> and replace <code className="bg-white px-2 py-0.5 rounded-lg border border-slate-200 font-mono text-xs">&lt;db_password&gt;</code> with your MongoDB password</li>
+              <li>2. Run <code className="bg-white px-2 py-0.5 rounded-lg border border-slate-200 font-mono text-xs">npm run seed</code> in a terminal to populate the database</li>
+              <li>3. Run <code className="bg-white px-2 py-0.5 rounded-lg border border-slate-200 font-mono text-xs">npm run server</code> in another terminal to start the API</li>
+            </ol>
+            <button onClick={fetchAll} className="px-6 py-3 bg-blue-600 text-white font-bold rounded-2xl hover:bg-blue-700 transition-colors">
+              Retry Connection
+            </button>
+          </div>
+        );
+      }
     switch (activeTab) {
       case 'home':         return renderHome();
       case 'experience':  return renderExperience();

@@ -7,7 +7,7 @@ const EducationSchema = new mongoose.Schema(
     period: { type: String, required: true },
     cgpa: { type: String, required: true },
   },
-  { timestamps: true }
+  { timestamps: true, collection: 'education' }
 );
 
 export default mongoose.model('Education', EducationSchema);

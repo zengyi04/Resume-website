@@ -9,7 +9,7 @@ const AchievementSchema = new mongoose.Schema(
     language: { type: String, required: true },
     description: { type: String, required: true },
   },
-  { timestamps: true }
+  { timestamps: true, collection: 'achievements' }
 );
 
 export default mongoose.model('Achievement', AchievementSchema);

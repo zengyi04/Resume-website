@@ -6,7 +6,7 @@ const CommitteeSchema = new mongoose.Schema(
     role: { type: String, required: true },
     date: { type: String, required: true },
   },
-  { timestamps: true }
+  { timestamps: true, collection: 'committee' }
 );
 
 export default mongoose.model('Committee', CommitteeSchema);

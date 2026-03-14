@@ -4,13 +4,13 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite --port=3000 --host=0.0.0.0",
+    "dev": "vite --config frontend/vite.config.ts --port=3000 --host=0.0.0.0",
     "server": "tsx backend/server.ts",
     "seed": "tsx backend/seed.ts",
-    "build": "vite build",
-    "preview": "vite preview",
+    "build": "vite build --config frontend/vite.config.ts",
+    "preview": "vite preview --config frontend/vite.config.ts",
     "clean": "rm -rf dist",
-    "lint": "tsc --noEmit"
+    "lint": "tsc --noEmit -p frontend/tsconfig.json"
   },
   "dependencies": {
     "@google/genai": "^1.29.0",
