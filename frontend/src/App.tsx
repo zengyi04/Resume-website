@@ -4,11 +4,13 @@ import {
   Award,
   BookOpen,
   Cpu,
+  FileText,
   Linkedin,
   Mail,
   Menu,
   Terminal,
   Trash2,
+  Upload,
   User,
   Users,
   X,
@@ -28,6 +30,14 @@ const PROFILE_IMAGE_SOURCES = [
 const PROFILE_IMAGE_FALLBACK_SRC = profilePhotoFallback;
 const ADMIN_EMAIL = 'yyjane42@gmail.com';
 const ADMIN_PASSWORD = 'password123';
+const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || '').trim().replace(/\/+$/, '');
+
+const buildApiUrl = (path: string) => {
+  return API_BASE_URL ? `${API_BASE_URL}${path}` : path;
+};
+
+const apiFetch = (path: string, init?: RequestInit) => fetch(buildApiUrl(path), init);
+const BACKEND_UNAVAILABLE_MESSAGE = 'Backend is unavailable. Start backend with `npm --prefix backend run dev` or run `npm run dev` at repo root.';
 
 type Role = 'admin' | 'guest';
 type Skill = { name: string; category: string };
@@ -48,6 +58,8 @@ type ExperienceData = WithId & {
   date: string;
   language: string;
   description: string;
+  certificateDataUrl?: string;
+  certificateName?: string;
 };
 
 type CommitteeData = WithId & {
@@ -168,7 +180,15 @@ const SEED_PAYLOAD = {
   education: SEED_EDUCATION,
 };
 
-const emptyExperience: ExperienceData = { title: '', role: '', date: '', language: '', description: '' };
+const emptyExperience: ExperienceData = {
+  title: '',
+  role: '',
+  date: '',
+  language: '',
+  description: '',
+  certificateDataUrl: '',
+  certificateName: '',
+};
 const emptyCommittee: CommitteeData = { title: '', role: '', date: '' };
 const emptyAchievement: AchievementData = { title: '', status: '', role: '', date: '', language: '', description: '' };
 const emptyEducation = { university: '', degree: '', period: '', cgpa: '', skillsText: '' };
@@ -227,13 +247,58 @@ export default function App() {
       });
   };
 
+  const readFileAsDataUrl = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => {
+        if (typeof reader.result === 'string') {
+          resolve(reader.result);
+          return;
+        }
+
+        reject(new Error('Failed to read certificate file.'));
+      };
+      reader.onerror = () => reject(new Error('Failed to read certificate file.'));
+      reader.readAsDataURL(file);
+    });
+  };
+
+  const handleExperienceCertificateUpload = async (file?: File) => {
+    if (!file) {
+      return;
+    }
+
+    const maxBytes = 4 * 1024 * 1024;
+    if (file.size > maxBytes) {
+      setSaveMessage('Certificate file is too large. Please upload a file smaller than 4MB.');
+      return;
+    }
+
+    try {
+      const certificateDataUrl = await readFileAsDataUrl(file);
+      setExperienceForm((prev) => ({ ...prev, certificateDataUrl, certificateName: file.name }));
+      setSaveMessage('Certificate file attached. Save Experience to upload to database.');
+    } catch (error) {
+      setSaveMessage((error as Error).message);
+    }
+  };
+
+  const checkBackendHealth = async (): Promise<boolean> => {
+    try {
+      const response = await apiFetch('/api/health');
+      return response.ok;
+    } catch {
+      return false;
+    }
+  };
+
   const fetchAllData = async (): Promise<{ seeded: boolean }> => {
     const [homeRes, experienceRes, committeeRes, achievementsRes, educationRes] = await Promise.all([
-      fetch('/api/home'),
-      fetch('/api/experience'),
-      fetch('/api/committee'),
-      fetch('/api/achievements'),
-      fetch('/api/education'),
+      apiFetch('/api/home'),
+      apiFetch('/api/experience'),
+      apiFetch('/api/committee'),
+      apiFetch('/api/achievements'),
+      apiFetch('/api/education'),
     ]);
 
     const home = homeRes.ok ? ((await homeRes.json()) as HomeData | null) : null;
@@ -245,7 +310,7 @@ export default function App() {
     const needsSeed = !home && experience.length === 0 && committee.length === 0 && achievement.length === 0 && education.length === 0;
 
     if (needsSeed) {
-      const seedRes = await fetch('/api/seed', {
+      const seedRes = await apiFetch('/api/seed', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(SEED_PAYLOAD),
@@ -271,14 +336,30 @@ export default function App() {
     return { seeded: false };
   };
 
-  const syncData = async () => {
+  const syncData = async (): Promise<boolean> => {
+    const isBackendHealthy = await checkBackendHealth();
+
+    if (!isBackendHealthy) {
+      setSaveMessage((current) =>
+        current.includes('saved') || current.includes('deleted') ? current : BACKEND_UNAVAILABLE_MESSAGE
+      );
+      return false;
+    }
+
     try {
       const result = await fetchAllData();
       if (result.seeded) {
         await fetchAllData();
       }
+
+      setSaveMessage((current) => (current === BACKEND_UNAVAILABLE_MESSAGE ? '' : current));
+      return true;
     } catch (error) {
       console.error('Failed to sync data from backend.', error);
+      setSaveMessage((current) =>
+        current.includes('saved') || current.includes('deleted') ? current : 'Failed to sync data from backend.'
+      );
+      return false;
     }
   };
 
@@ -291,14 +372,27 @@ export default function App() {
       return;
     }
 
-    void syncData();
+    let timeoutId: number | undefined;
+    let cancelled = false;
 
-    const intervalId = window.setInterval(() => {
-      void syncData();
-    }, 8000);
+    const poll = async () => {
+      const success = await syncData();
+      if (cancelled) {
+        return;
+      }
+
+      timeoutId = window.setTimeout(() => {
+        void poll();
+      }, success ? 8000 : 25000);
+    };
+
+    void poll();
 
     return () => {
-      window.clearInterval(intervalId);
+      cancelled = true;
+      if (timeoutId) {
+        window.clearTimeout(timeoutId);
+      }
     };
   }, [role]);
 
@@ -328,8 +422,8 @@ export default function App() {
       return;
     }
 
-    if (!experienceForm.title || !experienceForm.role || !experienceForm.date) {
-      setSaveMessage('Please fill in title, role, and date for experience.');
+    if (!experienceForm.title || !experienceForm.role || !experienceForm.date || !experienceForm.language || !experienceForm.description) {
+      setSaveMessage('Please fill in title, role, date, language, and description for experience.');
       return;
     }
 
@@ -337,7 +431,7 @@ export default function App() {
     setSaveMessage('');
 
     try {
-      const response = await fetch('/api/experience', {
+      const response = await apiFetch('/api/experience', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(experienceForm),
@@ -366,7 +460,7 @@ export default function App() {
     setSaveMessage('');
 
     try {
-      const response = await fetch(`/api/experience/${id}`, { method: 'DELETE' });
+      const response = await apiFetch(`/api/experience/${id}`, { method: 'DELETE' });
       if (!response.ok) {
         throw new Error('Failed to delete experience.');
       }
@@ -394,7 +488,7 @@ export default function App() {
     setSaveMessage('');
 
     try {
-      const response = await fetch('/api/committee', {
+      const response = await apiFetch('/api/committee', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(committeeForm),
@@ -423,7 +517,7 @@ export default function App() {
     setSaveMessage('');
 
     try {
-      const response = await fetch(`/api/committee/${id}`, { method: 'DELETE' });
+      const response = await apiFetch(`/api/committee/${id}`, { method: 'DELETE' });
       if (!response.ok) {
         throw new Error('Failed to delete committee entry.');
       }
@@ -451,7 +545,7 @@ export default function App() {
     setSaveMessage('');
 
     try {
-      const response = await fetch('/api/achievements', {
+      const response = await apiFetch('/api/achievements', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(achievementForm),
@@ -480,7 +574,7 @@ export default function App() {
     setSaveMessage('');
 
     try {
-      const response = await fetch(`/api/achievements/${id}`, { method: 'DELETE' });
+      const response = await apiFetch(`/api/achievements/${id}`, { method: 'DELETE' });
       if (!response.ok) {
         throw new Error('Failed to delete achievement.');
       }
@@ -518,7 +612,7 @@ export default function App() {
         skills: parsedSkills,
       };
 
-      const response = await fetch('/api/education', {
+      const response = await apiFetch('/api/education', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
@@ -547,7 +641,7 @@ export default function App() {
     setSaveMessage('');
 
     try {
-      const response = await fetch(`/api/education/${id}`, { method: 'DELETE' });
+      const response = await apiFetch(`/api/education/${id}`, { method: 'DELETE' });
       if (!response.ok) {
         throw new Error('Failed to delete education.');
       }
@@ -694,8 +788,9 @@ export default function App() {
             {renderStatus()}
 
             {isAdmin && (
-              <div className="mb-10 rounded-3xl border border-slate-200 bg-white p-6">
-                <h3 className="mb-4 text-lg font-bold text-slate-900">Add Experience</h3>
+              <div className="mb-10 rounded-3xl border border-slate-200 bg-gradient-to-br from-white to-slate-50 p-6 shadow-sm">
+                <h3 className="mb-2 text-lg font-bold text-slate-900">Add Experience</h3>
+                <p className="mb-4 text-sm text-slate-500">You can optionally upload sijil (certificate) for guests to view.</p>
                 <div className="grid gap-3 md:grid-cols-2">
                   <input className="rounded-xl border border-slate-200 px-3 py-2" placeholder="Title" value={experienceForm.title} onChange={(e) => setExperienceForm((prev) => ({ ...prev, title: e.target.value }))} />
                   <input className="rounded-xl border border-slate-200 px-3 py-2" placeholder="Role" value={experienceForm.role} onChange={(e) => setExperienceForm((prev) => ({ ...prev, role: e.target.value }))} />
@@ -703,6 +798,33 @@ export default function App() {
                   <input className="rounded-xl border border-slate-200 px-3 py-2" placeholder="Language" value={experienceForm.language} onChange={(e) => setExperienceForm((prev) => ({ ...prev, language: e.target.value }))} />
                 </div>
                 <textarea className="mt-3 min-h-[90px] w-full rounded-xl border border-slate-200 px-3 py-2" placeholder="Description" value={experienceForm.description} onChange={(e) => setExperienceForm((prev) => ({ ...prev, description: e.target.value }))} />
+                <label className="mt-3 flex cursor-pointer items-center gap-2 rounded-xl border border-dashed border-slate-300 bg-white px-3 py-2 text-sm text-slate-600 hover:border-blue-400 hover:text-blue-600">
+                  <Upload size={16} />
+                  <span>{experienceForm.certificateName || 'Upload sijil (jpg, png, pdf)'}</span>
+                  <input
+                    type="file"
+                    accept="image/*,application/pdf"
+                    className="hidden"
+                    onChange={(event) => {
+                      const file = event.target.files?.[0];
+                      void handleExperienceCertificateUpload(file);
+                      event.currentTarget.value = '';
+                    }}
+                  />
+                </label>
+                {experienceForm.certificateDataUrl && (
+                  <div className="mt-2 flex items-center gap-3 rounded-xl bg-slate-100 px-3 py-2 text-xs text-slate-600">
+                    <FileText size={14} />
+                    <span className="truncate">{experienceForm.certificateName || 'Certificate attached'}</span>
+                    <button
+                      type="button"
+                      onClick={() => setExperienceForm((prev) => ({ ...prev, certificateDataUrl: '', certificateName: '' }))}
+                      className="ml-auto rounded-md border border-slate-300 px-2 py-1 text-[11px] font-semibold text-slate-600 hover:bg-white"
+                    >
+                      Remove
+                    </button>
+                  </div>
+                )}
                 <button onClick={() => void handleAddExperience()} disabled={saving === 'experience'} className="mt-4 rounded-xl bg-slate-900 px-5 py-2 font-bold text-white hover:bg-blue-600 disabled:opacity-50">
                   {saving === 'experience' ? 'Saving...' : 'Save Experience'}
                 </button>
@@ -728,6 +850,26 @@ export default function App() {
                   <h3 className="text-xl font-bold text-slate-900 mb-1">{exp.title}</h3>
                   <p className="text-blue-600 font-bold text-xs mb-4">{exp.role}</p>
                   <p className="text-slate-600 text-sm leading-relaxed mb-6 font-light">{exp.description}</p>
+                  {exp.certificateDataUrl && (
+                    <div className="mb-5 rounded-2xl border border-slate-200 bg-white p-3">
+                      {exp.certificateDataUrl.startsWith('data:image') && (
+                        <img
+                          src={exp.certificateDataUrl}
+                          alt={`${exp.title} certificate`}
+                          className="mb-3 h-40 w-full rounded-xl object-cover"
+                        />
+                      )}
+                      <a
+                        href={exp.certificateDataUrl}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="inline-flex items-center gap-2 rounded-lg border border-blue-200 bg-blue-50 px-3 py-2 text-xs font-bold text-blue-700 hover:bg-blue-100"
+                      >
+                        <FileText size={14} />
+                        View Sijil{exp.certificateName ? `: ${exp.certificateName}` : ''}
+                      </a>
+                    </div>
+                  )}
                   <div className="flex items-center gap-2 pt-4 border-t border-slate-200">
                     <Cpu size={14} className="text-slate-400" />
                     <span className="text-xs font-mono font-bold text-slate-500">{exp.language}</span>

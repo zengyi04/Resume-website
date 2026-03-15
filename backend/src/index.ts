@@ -8,10 +8,12 @@ const mongoUri = getMongoUri();
 const app = createApp();
 
 async function bootstrap(): Promise<void> {
-  await ensureDatabaseConnection(mongoUri);
-
   const server = app.listen(port, () => {
     console.log(`Backend running on http://localhost:${port}`);
+  });
+
+  void ensureDatabaseConnection(mongoUri).catch((error) => {
+    console.error('Initial database connection failed. API will retry on incoming requests.', error);
   });
 
   server.on('error', (error: NodeJS.ErrnoException) => {

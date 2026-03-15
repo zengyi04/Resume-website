@@ -4,11 +4,46 @@ import mongoose from 'mongoose';
 import { connectDatabase } from './config/db.js';
 import { apiRouter } from './routes/index.js';
 
-const allowedOrigins = [
+const localAllowedOrigins = new Set([
   'http://localhost:3000',
   'http://127.0.0.1:3000',
   'http://localhost:5173',
-];
+]);
+
+const vercelPreviewOriginPattern = /^https:\/\/[a-z0-9-]+\.vercel\.app$/i;
+
+function getConfiguredAllowedOrigins(): Set<string> {
+  const envValue = process.env.FRONTEND_ORIGIN;
+
+  if (!envValue) {
+    return new Set();
+  }
+
+  return new Set(
+    envValue
+      .split(',')
+      .map((value) => value.trim())
+      .filter(Boolean)
+  );
+}
+
+const configuredAllowedOrigins = getConfiguredAllowedOrigins();
+
+function isAllowedOrigin(origin: string | undefined): boolean {
+  if (!origin) {
+    return true;
+  }
+
+  if (localAllowedOrigins.has(origin)) {
+    return true;
+  }
+
+  if (vercelPreviewOriginPattern.test(origin)) {
+    return true;
+  }
+
+  return configuredAllowedOrigins.has(origin);
+}
 const DEFAULT_LOCAL_MONGODB_URI = 'mongodb://127.0.0.1:27017';
 
 let connectionPromise: Promise<void> | null = null;
@@ -61,13 +96,30 @@ export function createApp(): express.Express {
 
   app.use(
     cors({
-      origin: allowedOrigins,
+      origin: (origin, callback) => {
+        if (isAllowedOrigin(origin)) {
+          callback(null, true);
+          return;
+        }
+
+        callback(new Error(`Origin ${origin ?? 'unknown'} is not allowed by CORS.`));
+      },
     })
   );
-  app.use(express.json({ limit: '1mb' }));
+  app.use(express.json({ limit: '10mb' }));
 
   app.get('/', (_req, res) => {
     res.json({ message: 'Resume backend is running', health: '/api/health' });
+  });
+
+  app.use('/api', async (_req, res, next) => {
+    try {
+      await ensureDatabaseConnection(getMongoUri());
+      next();
+    } catch (error) {
+      console.error('Database connection failed:', error);
+      res.status(503).json({ message: 'Database is temporarily unavailable. Please try again shortly.' });
+    }
   });
 
   app.use('/api', apiRouter);

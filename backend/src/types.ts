@@ -17,6 +17,8 @@ export interface Experience {
   date: string;
   language: string;
   description: string;
+  certificateDataUrl?: string;
+  certificateName?: string;
 }
 
 export interface Committee {

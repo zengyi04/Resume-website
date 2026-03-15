@@ -8,6 +8,8 @@ const experienceSchema = new Schema<Experience>(
     date: { type: String, required: true },
     language: { type: String, required: true },
     description: { type: String, required: true },
+    certificateDataUrl: { type: String, required: false },
+    certificateName: { type: String, required: false },
   },
   { timestamps: true }
 );

@@ -21,6 +21,11 @@ Prerequisite: Node.js 20+
 Frontend runs on `http://localhost:3000`.
 Backend runs on `http://localhost:5000`.
 
+Optional frontend env for development:
+
+- `VITE_API_BASE_URL` (optional override; by default frontend uses same-origin `/api`)
+- `VITE_API_PROXY_TARGET` (optional Vite dev proxy target, default `http://127.0.0.1:5000`)
+
 ## Backend Environment
 
 Backend environment variables are read from `backend/.env`.
@@ -41,8 +46,17 @@ This repository is configured to deploy from the repository root on Vercel.
 - Build command: `npm run build`
 - Output directory: `frontend/dist`
 
-The frontend is deployed as the static site and the backend is exposed through a Vercel serverless function at `/api/*`.
+The frontend is deployed as the static site and the backend is deployed together as a Vercel serverless function at `/api/*`.
+
+Behavior in production:
+
+- Frontend routes fallback to `index.html` (SPA routing)
+- Backend API is served from `api/[...route].ts`
 
 Set this environment variable in Vercel before deploying:
 
 - `MONGODB_URI`
+
+Optional environment variable:
+
+- `FRONTEND_ORIGIN` (comma-separated list of additional allowed origins for CORS)
