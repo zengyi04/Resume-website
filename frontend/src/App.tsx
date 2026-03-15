@@ -38,6 +38,10 @@ const buildApiUrl = (path: string) => {
 
 const apiFetch = (path: string, init?: RequestInit) => fetch(buildApiUrl(path), init);
 const BACKEND_UNAVAILABLE_MESSAGE = 'Backend is unavailable. Start backend with `npm --prefix backend run dev` or run `npm run dev` at repo root.';
+const SECTION_SHELL_CLASS = 'mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8 py-12';
+const FORM_PANEL_CLASS = 'mb-10 rounded-[28px] border border-slate-200/80 bg-gradient-to-br from-white via-white to-blue-50/40 p-6 shadow-[0_12px_45px_-20px_rgba(15,23,42,0.35)] backdrop-blur';
+const TEXT_INPUT_CLASS = 'rounded-2xl border border-slate-200 bg-white/95 px-3.5 py-2.5 text-slate-800 placeholder:text-slate-400 shadow-sm focus:border-blue-300 focus:outline-none focus:ring-2 focus:ring-blue-100';
+const PRIMARY_BUTTON_CLASS = 'mt-4 inline-flex items-center justify-center rounded-xl bg-slate-900 px-5 py-2.5 font-bold text-white shadow-lg shadow-slate-300/40 transition-all hover:-translate-y-0.5 hover:bg-blue-600 disabled:opacity-50';
 
 type Role = 'admin' | 'guest';
 type Skill = { name: string; category: string };
@@ -685,7 +689,7 @@ export default function App() {
     }
 
     return (
-      <div className="mb-8 rounded-2xl border border-blue-100 bg-blue-50/70 p-4 text-sm font-medium text-blue-800">
+      <div className="mb-8 rounded-2xl border border-blue-200/80 bg-gradient-to-r from-blue-50 via-sky-50 to-blue-50 p-4 text-sm font-medium text-blue-800 shadow-sm">
         Admin mode: you can add and delete records. Changes save to MongoDB and guest view auto-refreshes.
       </div>
     );
@@ -700,7 +704,7 @@ export default function App() {
 
     return (
       <div
-        className={`mb-6 rounded-xl border p-3 text-sm ${
+        className={`mb-6 rounded-xl border p-3 text-sm shadow-sm backdrop-blur ${
           isError ? 'border-red-100 bg-red-50 text-red-700' : 'border-emerald-100 bg-emerald-50 text-emerald-700'
         }`}
       >
@@ -730,15 +734,15 @@ export default function App() {
     switch (activeTab) {
       case 'home':
         return (
-          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="max-w-5xl mx-auto py-12 px-6">
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className={SECTION_SHELL_CLASS}>
             {renderAdminNotice()}
             {renderStatus()}
-            <div className="grid md:grid-cols-2 gap-12 items-center">
+            <div className="grid gap-12 xl:grid-cols-[1.15fr_1fr] items-center">
               <div>
                 <motion.div
                   initial={{ opacity: 0, scale: 0.9 }}
                   animate={{ opacity: 1, scale: 1 }}
-                  className="inline-block px-4 py-1.5 rounded-full bg-blue-50 text-blue-600 text-xs font-bold mb-6 tracking-wider"
+                  className="inline-block rounded-full border border-blue-200 bg-blue-50 px-4 py-1.5 text-xs font-bold tracking-wider text-blue-700 mb-6"
                 >
                   {homeData.subtitle}
                 </motion.div>
@@ -753,7 +757,7 @@ export default function App() {
                       setActiveTab('experience');
                       resetStatus();
                     }}
-                    className="bg-slate-900 text-white px-8 py-4 rounded-2xl font-bold hover:bg-blue-600 transition-all flex items-center gap-2 group shadow-xl shadow-slate-200"
+                    className="group flex items-center gap-2 rounded-2xl bg-slate-900 px-8 py-4 font-bold text-white shadow-xl shadow-slate-300/40 transition-all hover:-translate-y-0.5 hover:bg-blue-600"
                   >
                     Explore Projects
                     <ArrowRight size={20} className="group-hover:translate-x-1 transition-transform" />
@@ -769,7 +773,7 @@ export default function App() {
                 </div>
               </div>
               <div className="relative">
-                <div className="relative mx-auto w-full max-w-[420px] aspect-square overflow-hidden rounded-[44px] bg-[#163a63] shadow-2xl shadow-slate-300/70">
+                <div className="relative mx-auto aspect-square w-full max-w-[430px] overflow-hidden rounded-[44px] border border-slate-200 bg-[#163a63] shadow-2xl shadow-slate-300/70">
                   <div className="absolute inset-x-0 top-0 bottom-[18%] overflow-hidden rounded-t-[44px] bg-slate-200">
                     <img
                       src={PROFILE_IMAGE_SOURCES[profileImageIndex] ?? PROFILE_IMAGE_FALLBACK_SRC}
@@ -797,7 +801,7 @@ export default function App() {
                   <div className="absolute inset-x-0 bottom-0 h-[30%] bg-[#163a63]" />
                   <div className="absolute inset-x-[-6%] bottom-[10%] h-[24%] rounded-t-[100%] bg-white" />
                 </div>
-                <div className="absolute -bottom-6 -right-6 bg-white p-6 rounded-3xl shadow-xl border border-slate-50 max-w-[200px]">
+                <div className="absolute -bottom-6 -right-4 max-w-[210px] rounded-3xl border border-slate-200 bg-white/95 p-6 shadow-xl backdrop-blur">
                   <p className="text-[10px] font-bold text-blue-600 uppercase tracking-widest mb-2">Availability</p>
                   <p className="text-sm font-bold text-slate-900 leading-tight">{homeData.internshipAvailability}</p>
                 </div>
@@ -807,22 +811,22 @@ export default function App() {
         );
       case 'experience':
         return (
-          <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="max-w-5xl mx-auto py-12 px-6">
+          <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className={SECTION_SHELL_CLASS}>
             {renderAdminNotice()}
             {renderStatus()}
 
             {isAdmin && (
-              <div className="mb-10 rounded-3xl border border-slate-200 bg-gradient-to-br from-white to-slate-50 p-6 shadow-sm" onPaste={handleExperiencePaste}>
+              <div className={FORM_PANEL_CLASS} onPaste={handleExperiencePaste}>
                 <h3 className="mb-2 text-lg font-bold text-slate-900">Add Experience</h3>
                 <p className="mb-4 text-sm text-slate-500">You can optionally fill any info and paste/upload sijil (certificate) for guests to view.</p>
                 <div className="grid gap-3 md:grid-cols-2">
-                  <input className="rounded-xl border border-slate-200 px-3 py-2" placeholder="Title (optional)" value={experienceForm.title} onChange={(e) => setExperienceForm((prev) => ({ ...prev, title: e.target.value }))} />
-                  <input className="rounded-xl border border-slate-200 px-3 py-2" placeholder="Role (optional)" value={experienceForm.role} onChange={(e) => setExperienceForm((prev) => ({ ...prev, role: e.target.value }))} />
-                  <input className="rounded-xl border border-slate-200 px-3 py-2" placeholder="Date (optional)" value={experienceForm.date} onChange={(e) => setExperienceForm((prev) => ({ ...prev, date: e.target.value }))} />
-                  <input className="rounded-xl border border-slate-200 px-3 py-2" placeholder="Language (optional)" value={experienceForm.language} onChange={(e) => setExperienceForm((prev) => ({ ...prev, language: e.target.value }))} />
+                  <input className={TEXT_INPUT_CLASS} placeholder="Title (optional)" value={experienceForm.title} onChange={(e) => setExperienceForm((prev) => ({ ...prev, title: e.target.value }))} />
+                  <input className={TEXT_INPUT_CLASS} placeholder="Role (optional)" value={experienceForm.role} onChange={(e) => setExperienceForm((prev) => ({ ...prev, role: e.target.value }))} />
+                  <input className={TEXT_INPUT_CLASS} placeholder="Date (optional)" value={experienceForm.date} onChange={(e) => setExperienceForm((prev) => ({ ...prev, date: e.target.value }))} />
+                  <input className={TEXT_INPUT_CLASS} placeholder="Language (optional)" value={experienceForm.language} onChange={(e) => setExperienceForm((prev) => ({ ...prev, language: e.target.value }))} />
                 </div>
-                <textarea className="mt-3 min-h-[90px] w-full rounded-xl border border-slate-200 px-3 py-2" placeholder="Description (optional)" value={experienceForm.description} onChange={(e) => setExperienceForm((prev) => ({ ...prev, description: e.target.value }))} />
-                <label className="mt-3 flex cursor-pointer items-center gap-2 rounded-xl border border-dashed border-slate-300 bg-white px-3 py-2 text-sm text-slate-600 hover:border-blue-400 hover:text-blue-600">
+                <textarea className={`${TEXT_INPUT_CLASS} mt-3 min-h-[90px] w-full`} placeholder="Description (optional)" value={experienceForm.description} onChange={(e) => setExperienceForm((prev) => ({ ...prev, description: e.target.value }))} />
+                <label className="mt-3 flex cursor-pointer items-center gap-2 rounded-xl border border-dashed border-slate-300 bg-white px-3 py-2 text-sm text-slate-600 transition-colors hover:border-blue-400 hover:text-blue-600">
                   <Upload size={16} />
                   <span>{experienceForm.certificateName || 'Upload or paste sijil (jpg, png, pdf)'}</span>
                   <input
@@ -837,7 +841,7 @@ export default function App() {
                   />
                 </label>
                 {experienceForm.certificateDataUrl && (
-                  <div className="mt-2 flex items-center gap-3 rounded-xl bg-slate-100 px-3 py-2 text-xs text-slate-600">
+                  <div className="mt-2 flex items-center gap-3 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs text-slate-600">
                     <FileText size={14} />
                     <span className="truncate">{experienceForm.certificateName || 'Certificate attached'}</span>
                     <button
@@ -849,7 +853,7 @@ export default function App() {
                     </button>
                   </div>
                 )}
-                <button onClick={() => void handleAddExperience()} disabled={saving === 'experience'} className="mt-4 rounded-xl bg-slate-900 px-5 py-2 font-bold text-white hover:bg-blue-600 disabled:opacity-50">
+                <button onClick={() => void handleAddExperience()} disabled={saving === 'experience'} className={PRIMARY_BUTTON_CLASS}>
                   {saving === 'experience' ? 'Saving...' : 'Save Experience'}
                 </button>
               </div>
@@ -859,11 +863,11 @@ export default function App() {
               <h2 className="text-4xl font-black tracking-tighter text-slate-900 mb-4">Competition Experience</h2>
               <p className="text-slate-500 font-light">Technical projects developed during hackathons and competitions.</p>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
               {experiences.map((exp, index) => (
-                <div key={exp._id ?? `${exp.title}-${index}`} className="bg-slate-50 p-8 rounded-[32px] border border-slate-100 hover:bg-white hover:shadow-xl transition-all group">
+                <div key={exp._id ?? `${exp.title}-${index}`} className="group rounded-[32px] border border-slate-200 bg-gradient-to-br from-white to-slate-50/50 p-8 shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-xl">
                   <div className="mb-6 flex justify-between items-start gap-3">
-                    <div className="w-12 h-12 rounded-2xl bg-white flex items-center justify-center text-blue-600 shadow-sm">
+                    <div className="w-12 h-12 rounded-2xl bg-white flex items-center justify-center text-blue-600 shadow-md shadow-slate-200/60">
                       <Terminal size={24} />
                     </div>
                     <div className="text-right">
@@ -905,19 +909,19 @@ export default function App() {
         );
       case 'committee':
         return (
-          <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="max-w-5xl mx-auto py-12 px-6">
+          <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className={SECTION_SHELL_CLASS}>
             {renderAdminNotice()}
             {renderStatus()}
 
             {isAdmin && (
-              <div className="mb-10 rounded-3xl border border-slate-200 bg-white p-6">
+              <div className={FORM_PANEL_CLASS}>
                 <h3 className="mb-4 text-lg font-bold text-slate-900">Add Committee Entry</h3>
                 <div className="grid gap-3 md:grid-cols-3">
-                  <input className="rounded-xl border border-slate-200 px-3 py-2" placeholder="Title" value={committeeForm.title} onChange={(e) => setCommitteeForm((prev) => ({ ...prev, title: e.target.value }))} />
-                  <input className="rounded-xl border border-slate-200 px-3 py-2" placeholder="Role" value={committeeForm.role} onChange={(e) => setCommitteeForm((prev) => ({ ...prev, role: e.target.value }))} />
-                  <input className="rounded-xl border border-slate-200 px-3 py-2" placeholder="Date" value={committeeForm.date} onChange={(e) => setCommitteeForm((prev) => ({ ...prev, date: e.target.value }))} />
+                  <input className={TEXT_INPUT_CLASS} placeholder="Title" value={committeeForm.title} onChange={(e) => setCommitteeForm((prev) => ({ ...prev, title: e.target.value }))} />
+                  <input className={TEXT_INPUT_CLASS} placeholder="Role" value={committeeForm.role} onChange={(e) => setCommitteeForm((prev) => ({ ...prev, role: e.target.value }))} />
+                  <input className={TEXT_INPUT_CLASS} placeholder="Date" value={committeeForm.date} onChange={(e) => setCommitteeForm((prev) => ({ ...prev, date: e.target.value }))} />
                 </div>
-                <button onClick={() => void handleAddCommittee()} disabled={saving === 'committee'} className="mt-4 rounded-xl bg-slate-900 px-5 py-2 font-bold text-white hover:bg-blue-600 disabled:opacity-50">
+                <button onClick={() => void handleAddCommittee()} disabled={saving === 'committee'} className={PRIMARY_BUTTON_CLASS}>
                   {saving === 'committee' ? 'Saving...' : 'Save Committee'}
                 </button>
               </div>
@@ -927,9 +931,9 @@ export default function App() {
               <h2 className="text-4xl font-black tracking-tighter text-slate-900 mb-4">Committee Roles</h2>
               <p className="text-slate-500 font-light">Leadership and organizational contributions to the university community.</p>
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
               {committeeExperiences.map((exp, index) => (
-                <div key={exp._id ?? `${exp.title}-${index}`} className="p-8 rounded-3xl bg-white border border-slate-100 shadow-sm hover:shadow-md transition-all text-center">
+                <div key={exp._id ?? `${exp.title}-${index}`} className="rounded-3xl border border-slate-200 bg-gradient-to-br from-white to-slate-50 p-8 text-center shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-lg">
                   <div className="mb-6 flex justify-between items-start gap-2">
                     <div className="w-12 h-12 rounded-full bg-blue-50 flex items-center justify-center text-blue-600 mx-auto">
                       <Users size={24} />
@@ -946,22 +950,22 @@ export default function App() {
         );
       case 'achievements':
         return (
-          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="max-w-5xl mx-auto py-12 px-6">
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className={SECTION_SHELL_CLASS}>
             {renderAdminNotice()}
             {renderStatus()}
 
             {isAdmin && (
-              <div className="mb-10 rounded-3xl border border-slate-200 bg-white p-6">
+              <div className={FORM_PANEL_CLASS}>
                 <h3 className="mb-4 text-lg font-bold text-slate-900">Add Achievement</h3>
                 <div className="grid gap-3 md:grid-cols-2">
-                  <input className="rounded-xl border border-slate-200 px-3 py-2" placeholder="Title" value={achievementForm.title} onChange={(e) => setAchievementForm((prev) => ({ ...prev, title: e.target.value }))} />
-                  <input className="rounded-xl border border-slate-200 px-3 py-2" placeholder="Status" value={achievementForm.status} onChange={(e) => setAchievementForm((prev) => ({ ...prev, status: e.target.value }))} />
-                  <input className="rounded-xl border border-slate-200 px-3 py-2" placeholder="Role" value={achievementForm.role} onChange={(e) => setAchievementForm((prev) => ({ ...prev, role: e.target.value }))} />
-                  <input className="rounded-xl border border-slate-200 px-3 py-2" placeholder="Date" value={achievementForm.date} onChange={(e) => setAchievementForm((prev) => ({ ...prev, date: e.target.value }))} />
-                  <input className="rounded-xl border border-slate-200 px-3 py-2 md:col-span-2" placeholder="Language" value={achievementForm.language} onChange={(e) => setAchievementForm((prev) => ({ ...prev, language: e.target.value }))} />
+                  <input className={TEXT_INPUT_CLASS} placeholder="Title" value={achievementForm.title} onChange={(e) => setAchievementForm((prev) => ({ ...prev, title: e.target.value }))} />
+                  <input className={TEXT_INPUT_CLASS} placeholder="Status" value={achievementForm.status} onChange={(e) => setAchievementForm((prev) => ({ ...prev, status: e.target.value }))} />
+                  <input className={TEXT_INPUT_CLASS} placeholder="Role" value={achievementForm.role} onChange={(e) => setAchievementForm((prev) => ({ ...prev, role: e.target.value }))} />
+                  <input className={TEXT_INPUT_CLASS} placeholder="Date" value={achievementForm.date} onChange={(e) => setAchievementForm((prev) => ({ ...prev, date: e.target.value }))} />
+                  <input className={`${TEXT_INPUT_CLASS} md:col-span-2`} placeholder="Language" value={achievementForm.language} onChange={(e) => setAchievementForm((prev) => ({ ...prev, language: e.target.value }))} />
                 </div>
-                <textarea className="mt-3 min-h-[90px] w-full rounded-xl border border-slate-200 px-3 py-2" placeholder="Description" value={achievementForm.description} onChange={(e) => setAchievementForm((prev) => ({ ...prev, description: e.target.value }))} />
-                <button onClick={() => void handleAddAchievement()} disabled={saving === 'achievements'} className="mt-4 rounded-xl bg-slate-900 px-5 py-2 font-bold text-white hover:bg-blue-600 disabled:opacity-50">
+                <textarea className={`${TEXT_INPUT_CLASS} mt-3 min-h-[90px] w-full`} placeholder="Description" value={achievementForm.description} onChange={(e) => setAchievementForm((prev) => ({ ...prev, description: e.target.value }))} />
+                <button onClick={() => void handleAddAchievement()} disabled={saving === 'achievements'} className={PRIMARY_BUTTON_CLASS}>
                   {saving === 'achievements' ? 'Saving...' : 'Save Achievement'}
                 </button>
               </div>
@@ -973,7 +977,7 @@ export default function App() {
             </div>
             <div className="space-y-8">
               {achievements.map((ach, index) => (
-                <div key={ach._id ?? `${ach.title}-${index}`} className="bg-white rounded-[32px] p-8 border border-slate-100 shadow-sm hover:shadow-xl transition-all group relative overflow-hidden">
+                <div key={ach._id ?? `${ach.title}-${index}`} className="group relative overflow-hidden rounded-[32px] border border-slate-200 bg-gradient-to-br from-white to-slate-50 p-8 shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-xl">
                   <div className="absolute top-0 right-0 w-32 h-32 bg-blue-50 rounded-bl-[100px] -z-0 opacity-50 group-hover:bg-blue-100 transition-colors" />
                   <div className="relative z-10">
                     <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-8">
@@ -1012,30 +1016,30 @@ export default function App() {
         );
       case 'education':
         return (
-          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="max-w-5xl mx-auto py-12 px-6">
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className={SECTION_SHELL_CLASS}>
             {renderAdminNotice()}
             {renderStatus()}
 
             {isAdmin && (
-              <div className="mb-10 rounded-3xl border border-slate-200 bg-white p-6">
+              <div className={FORM_PANEL_CLASS}>
                 <h3 className="mb-4 text-lg font-bold text-slate-900">Add Education</h3>
                 <div className="grid gap-3 md:grid-cols-2">
-                  <input className="rounded-xl border border-slate-200 px-3 py-2" placeholder="University" value={educationForm.university} onChange={(e) => setEducationForm((prev) => ({ ...prev, university: e.target.value }))} />
-                  <input className="rounded-xl border border-slate-200 px-3 py-2" placeholder="Degree" value={educationForm.degree} onChange={(e) => setEducationForm((prev) => ({ ...prev, degree: e.target.value }))} />
-                  <input className="rounded-xl border border-slate-200 px-3 py-2" placeholder="Period" value={educationForm.period} onChange={(e) => setEducationForm((prev) => ({ ...prev, period: e.target.value }))} />
-                  <input className="rounded-xl border border-slate-200 px-3 py-2" placeholder="CGPA" value={educationForm.cgpa} onChange={(e) => setEducationForm((prev) => ({ ...prev, cgpa: e.target.value }))} />
+                  <input className={TEXT_INPUT_CLASS} placeholder="University" value={educationForm.university} onChange={(e) => setEducationForm((prev) => ({ ...prev, university: e.target.value }))} />
+                  <input className={TEXT_INPUT_CLASS} placeholder="Degree" value={educationForm.degree} onChange={(e) => setEducationForm((prev) => ({ ...prev, degree: e.target.value }))} />
+                  <input className={TEXT_INPUT_CLASS} placeholder="Period" value={educationForm.period} onChange={(e) => setEducationForm((prev) => ({ ...prev, period: e.target.value }))} />
+                  <input className={TEXT_INPUT_CLASS} placeholder="CGPA" value={educationForm.cgpa} onChange={(e) => setEducationForm((prev) => ({ ...prev, cgpa: e.target.value }))} />
                 </div>
-                <input className="mt-3 w-full rounded-xl border border-slate-200 px-3 py-2" placeholder="Skills (comma separated, optional format: Skill:Category)" value={educationForm.skillsText} onChange={(e) => setEducationForm((prev) => ({ ...prev, skillsText: e.target.value }))} />
-                <button onClick={() => void handleAddEducation()} disabled={saving === 'education'} className="mt-4 rounded-xl bg-slate-900 px-5 py-2 font-bold text-white hover:bg-blue-600 disabled:opacity-50">
+                <input className={`${TEXT_INPUT_CLASS} mt-3 w-full`} placeholder="Skills (comma separated, optional format: Skill:Category)" value={educationForm.skillsText} onChange={(e) => setEducationForm((prev) => ({ ...prev, skillsText: e.target.value }))} />
+                <button onClick={() => void handleAddEducation()} disabled={saving === 'education'} className={PRIMARY_BUTTON_CLASS}>
                   {saving === 'education' ? 'Saving...' : 'Save Education'}
                 </button>
               </div>
             )}
 
-            <div className="grid md:grid-cols-2 gap-16">
+            <div className="grid gap-12 lg:grid-cols-2">
               <div>
                 <h2 className="text-4xl font-black tracking-tighter text-slate-900 mb-12">Education</h2>
-                <div className="p-8 rounded-[40px] bg-slate-50 border border-slate-100">
+                <div className="rounded-[40px] border border-slate-200 bg-gradient-to-br from-white to-slate-50 p-8 shadow-sm">
                   <div className="flex items-center gap-4 mb-6">
                     <div className="w-12 h-12 rounded-2xl bg-white flex items-center justify-center text-blue-600 shadow-sm">
                       <BookOpen size={24} />
@@ -1053,7 +1057,7 @@ export default function App() {
                 </div>
 
                 {additionalEducation.length > 0 && (
-                  <div className="mt-6 space-y-3 rounded-3xl border border-slate-200 bg-white p-4">
+                  <div className="mt-6 space-y-3 rounded-3xl border border-slate-200 bg-white p-4 shadow-sm">
                     <p className="text-sm font-bold text-slate-800">More Education</p>
                     {additionalEducation.map((item, index) => (
                       <div key={item._id ?? `${item.university}-${index}`} className="rounded-xl border border-slate-100 bg-slate-50 px-4 py-3">
@@ -1067,7 +1071,7 @@ export default function App() {
                 )}
 
                 {isAdmin && (
-                  <div className="mt-6 space-y-3 rounded-3xl border border-slate-200 bg-white p-4">
+                  <div className="mt-6 space-y-3 rounded-3xl border border-slate-200 bg-white p-4 shadow-sm">
                     <p className="text-sm font-bold text-slate-800">Existing education entries</p>
                     {educationData.map((item, index) => (
                       <div key={item._id ?? `${item.university}-${index}`} className="flex items-center justify-between rounded-xl border border-slate-100 bg-slate-50 px-3 py-2">
@@ -1085,7 +1089,7 @@ export default function App() {
                 <h2 className="text-4xl font-black tracking-tighter text-slate-900 mb-12">Technical Skills</h2>
                 <div className="flex flex-wrap gap-3">
                   {skills.map((skill, index) => (
-                    <div key={`${skill.name}-${index}`} className="px-5 py-3 bg-white rounded-2xl border border-slate-100 shadow-sm hover:border-blue-200 transition-all">
+                    <div key={`${skill.name}-${index}`} className="rounded-2xl border border-slate-200 bg-white px-5 py-3 shadow-sm transition-all hover:-translate-y-0.5 hover:border-blue-200 hover:shadow-md">
                       <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">{skill.category}</p>
                       <p className="font-bold text-slate-800">{skill.name}</p>
                     </div>
@@ -1102,8 +1106,8 @@ export default function App() {
 
   if (!role) {
     return (
-      <div className="min-h-screen bg-[radial-gradient(circle_at_top_right,#dbeafe,transparent_45%),radial-gradient(circle_at_bottom_left,#e2e8f0,transparent_40%),#f8fafc] px-6 py-10 text-slate-900">
-        <div className="mx-auto max-w-4xl rounded-[36px] border border-slate-200 bg-white/90 p-8 shadow-2xl shadow-slate-200/80 md:p-12">
+      <div className="min-h-screen bg-[radial-gradient(circle_at_top_right,#bfdbfe,transparent_45%),radial-gradient(circle_at_bottom_left,#cbd5e1,transparent_40%),#f8fafc] px-6 py-10 text-slate-900">
+        <div className="mx-auto max-w-5xl rounded-[36px] border border-slate-200/80 bg-white/90 p-8 shadow-2xl shadow-slate-200/80 backdrop-blur md:p-12">
           <div className="grid gap-10 md:grid-cols-2 md:items-center">
             <div>
               <p className="mb-3 text-xs font-bold uppercase tracking-[0.25em] text-blue-700">Resume Portal</p>
@@ -1114,25 +1118,25 @@ export default function App() {
               </p>
             </div>
 
-            <div className="rounded-3xl border border-slate-100 bg-slate-50 p-6">
+            <div className="rounded-3xl border border-slate-200/80 bg-white/95 p-6 shadow-xl shadow-slate-200/60 backdrop-blur">
               <h2 className="mb-4 text-lg font-bold text-slate-900">Login</h2>
               <div className="space-y-3">
                 <input
                   type="email"
                   value={loginEmail}
                   onChange={(e) => setLoginEmail(e.target.value)}
-                  className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2"
+                  className={`${TEXT_INPUT_CLASS} w-full`}
                   placeholder="Email"
                 />
                 <input
                   type="password"
                   value={loginPassword}
                   onChange={(e) => setLoginPassword(e.target.value)}
-                  className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2"
+                  className={`${TEXT_INPUT_CLASS} w-full`}
                   placeholder="Password"
                 />
                 {authError && <p className="text-sm font-medium text-red-600">{authError}</p>}
-                <button onClick={handleAdminLogin} className="w-full rounded-xl bg-slate-900 py-2.5 font-bold text-white hover:bg-blue-700">
+                <button onClick={handleAdminLogin} className="w-full rounded-xl bg-slate-900 py-2.5 font-bold text-white shadow-lg shadow-slate-300/40 transition-all hover:-translate-y-0.5 hover:bg-blue-700">
                   Login
                 </button>
               </div>
@@ -1150,9 +1154,9 @@ export default function App() {
   }
 
   return (
-    <div className="min-h-screen bg-white text-slate-900 font-sans selection:bg-blue-100 selection:text-blue-900">
-      <nav className="fixed top-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-md border-b border-slate-100">
-        <div className="max-w-7xl mx-auto px-6 h-20 flex justify-between items-center">
+    <div className="min-h-screen bg-[radial-gradient(circle_at_top_left,#dbeafe66,transparent_45%),radial-gradient(circle_at_bottom_right,#e2e8f066,transparent_40%),#ffffff] text-slate-900 font-sans selection:bg-blue-100 selection:text-blue-900">
+      <nav className="fixed left-0 right-0 top-0 z-50 border-b border-slate-200/80 bg-white/80 backdrop-blur-xl">
+        <div className="mx-auto flex h-20 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
           <div
             className="flex items-center gap-2 cursor-pointer group"
             onClick={() => {
@@ -1166,7 +1170,7 @@ export default function App() {
             <span className="font-black text-xl tracking-tighter">{homeData.name}</span>
           </div>
 
-          <div className="hidden md:flex items-center gap-2">
+          <div className="hidden md:flex items-center gap-2 rounded-2xl border border-slate-200 bg-white/90 p-1 shadow-sm">
             {navItems.map((item) => (
               <button
                 key={item.id}
@@ -1174,8 +1178,8 @@ export default function App() {
                   setActiveTab(item.id);
                   resetStatus();
                 }}
-                className={`px-4 py-2 rounded-xl text-sm font-bold transition-all flex items-center gap-2 ${
-                  activeTab === item.id ? 'bg-slate-100 text-blue-600' : 'text-slate-500 hover:text-slate-900 hover:bg-slate-50'
+                className={`flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-bold transition-all ${
+                  activeTab === item.id ? 'bg-slate-100 text-blue-600 shadow-sm' : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900'
                 }`}
               >
                 <item.icon size={16} />
@@ -1248,7 +1252,7 @@ export default function App() {
         </AnimatePresence>
       </nav>
 
-      <main className="pt-28 pb-20 min-h-[calc(100vh-80px)]">
+      <main className="min-h-[calc(100vh-80px)] pb-20 pt-28">
         <AnimatePresence mode="wait">
           <motion.div key={activeTab} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.3 }}>
             {renderContent()}
@@ -1256,8 +1260,8 @@ export default function App() {
         </AnimatePresence>
       </main>
 
-      <footer className="bg-slate-50 py-12 px-6 border-t border-slate-100">
-        <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-8">
+      <footer className="border-t border-slate-200/80 bg-white/90 py-12 px-6 backdrop-blur">
+        <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-8 md:flex-row">
           <div className="flex items-center gap-3">
             <div className="w-8 h-8 bg-slate-900 rounded-lg flex items-center justify-center text-white font-bold text-sm">H</div>
             <span className="font-bold text-slate-900">{homeData.name}</span>
