@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, type ClipboardEvent } from 'react';
 import {
   ArrowRight,
   Award,
@@ -283,6 +283,22 @@ export default function App() {
     }
   };
 
+  const handleExperiencePaste = (event: ClipboardEvent<HTMLDivElement>) => {
+    const imageItem = Array.from(event.clipboardData.items).find((item) => item.type.startsWith('image/'));
+
+    if (!imageItem) {
+      return;
+    }
+
+    const file = imageItem.getAsFile();
+    if (!file) {
+      return;
+    }
+
+    event.preventDefault();
+    void handleExperienceCertificateUpload(file);
+  };
+
   const checkBackendHealth = async (): Promise<boolean> => {
     try {
       const response = await apiFetch('/api/health');
@@ -422,8 +438,16 @@ export default function App() {
       return;
     }
 
-    if (!experienceForm.title || !experienceForm.role || !experienceForm.date || !experienceForm.language || !experienceForm.description) {
-      setSaveMessage('Please fill in title, role, date, language, and description for experience.');
+    const hasAnyValue =
+      Boolean(experienceForm.title.trim()) ||
+      Boolean(experienceForm.role.trim()) ||
+      Boolean(experienceForm.date.trim()) ||
+      Boolean(experienceForm.language.trim()) ||
+      Boolean(experienceForm.description.trim()) ||
+      Boolean(experienceForm.certificateDataUrl);
+
+    if (!hasAnyValue) {
+      setSaveMessage('Add at least one field or paste/upload sijil before saving experience.');
       return;
     }
 
@@ -788,19 +812,19 @@ export default function App() {
             {renderStatus()}
 
             {isAdmin && (
-              <div className="mb-10 rounded-3xl border border-slate-200 bg-gradient-to-br from-white to-slate-50 p-6 shadow-sm">
+              <div className="mb-10 rounded-3xl border border-slate-200 bg-gradient-to-br from-white to-slate-50 p-6 shadow-sm" onPaste={handleExperiencePaste}>
                 <h3 className="mb-2 text-lg font-bold text-slate-900">Add Experience</h3>
-                <p className="mb-4 text-sm text-slate-500">You can optionally upload sijil (certificate) for guests to view.</p>
+                <p className="mb-4 text-sm text-slate-500">You can optionally fill any info and paste/upload sijil (certificate) for guests to view.</p>
                 <div className="grid gap-3 md:grid-cols-2">
-                  <input className="rounded-xl border border-slate-200 px-3 py-2" placeholder="Title" value={experienceForm.title} onChange={(e) => setExperienceForm((prev) => ({ ...prev, title: e.target.value }))} />
-                  <input className="rounded-xl border border-slate-200 px-3 py-2" placeholder="Role" value={experienceForm.role} onChange={(e) => setExperienceForm((prev) => ({ ...prev, role: e.target.value }))} />
-                  <input className="rounded-xl border border-slate-200 px-3 py-2" placeholder="Date" value={experienceForm.date} onChange={(e) => setExperienceForm((prev) => ({ ...prev, date: e.target.value }))} />
-                  <input className="rounded-xl border border-slate-200 px-3 py-2" placeholder="Language" value={experienceForm.language} onChange={(e) => setExperienceForm((prev) => ({ ...prev, language: e.target.value }))} />
+                  <input className="rounded-xl border border-slate-200 px-3 py-2" placeholder="Title (optional)" value={experienceForm.title} onChange={(e) => setExperienceForm((prev) => ({ ...prev, title: e.target.value }))} />
+                  <input className="rounded-xl border border-slate-200 px-3 py-2" placeholder="Role (optional)" value={experienceForm.role} onChange={(e) => setExperienceForm((prev) => ({ ...prev, role: e.target.value }))} />
+                  <input className="rounded-xl border border-slate-200 px-3 py-2" placeholder="Date (optional)" value={experienceForm.date} onChange={(e) => setExperienceForm((prev) => ({ ...prev, date: e.target.value }))} />
+                  <input className="rounded-xl border border-slate-200 px-3 py-2" placeholder="Language (optional)" value={experienceForm.language} onChange={(e) => setExperienceForm((prev) => ({ ...prev, language: e.target.value }))} />
                 </div>
-                <textarea className="mt-3 min-h-[90px] w-full rounded-xl border border-slate-200 px-3 py-2" placeholder="Description" value={experienceForm.description} onChange={(e) => setExperienceForm((prev) => ({ ...prev, description: e.target.value }))} />
+                <textarea className="mt-3 min-h-[90px] w-full rounded-xl border border-slate-200 px-3 py-2" placeholder="Description (optional)" value={experienceForm.description} onChange={(e) => setExperienceForm((prev) => ({ ...prev, description: e.target.value }))} />
                 <label className="mt-3 flex cursor-pointer items-center gap-2 rounded-xl border border-dashed border-slate-300 bg-white px-3 py-2 text-sm text-slate-600 hover:border-blue-400 hover:text-blue-600">
                   <Upload size={16} />
-                  <span>{experienceForm.certificateName || 'Upload sijil (jpg, png, pdf)'}</span>
+                  <span>{experienceForm.certificateName || 'Upload or paste sijil (jpg, png, pdf)'}</span>
                   <input
                     type="file"
                     accept="image/*,application/pdf"
