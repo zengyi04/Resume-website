@@ -27,6 +27,22 @@ Backend environment variables are read from `backend/.env`.
 
 Required key:
 
-- `MONGODB_URI`
+- `MONGODB_URI` in production
+
+For local development, if `MONGODB_URI` is not set, the backend falls back to `mongodb://127.0.0.1:27017` and uses the `resume_website` database name.
 
 The app currently auto-seeds the MongoDB collections from frontend mock data on startup through `POST /api/seed`.
+
+## Vercel Deployment
+
+This repository is configured to deploy from the repository root on Vercel.
+
+- Install command: `npm install`
+- Build command: `npm run build`
+- Output directory: `frontend/dist`
+
+The frontend is deployed as the static site and the backend is exposed through a Vercel serverless function at `/api/*`.
+
+Set this environment variable in Vercel before deploying:
+
+- `MONGODB_URI`
