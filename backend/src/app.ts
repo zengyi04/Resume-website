@@ -1,6 +1,9 @@
 import cors from 'cors';
 import express from 'express';
+import { existsSync } from 'fs';
 import mongoose from 'mongoose';
+import path from 'path';
+import { fileURLToPath } from 'url';
 import { connectDatabase } from './config/db.js';
 import { apiRouter } from './routes/index.js';
 
@@ -45,6 +48,9 @@ function isAllowedOrigin(origin: string | undefined): boolean {
   return configuredAllowedOrigins.has(origin);
 }
 const DEFAULT_LOCAL_MONGODB_URI = 'mongodb://127.0.0.1:27017';
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const frontendDistPath = path.resolve(__dirname, '../../frontend/dist');
 
 let connectionPromise: Promise<void> | null = null;
 let hasWarnedAboutFallbackUri = false;
@@ -93,6 +99,7 @@ export async function ensureDatabaseConnection(uri: string): Promise<void> {
 
 export function createApp(): express.Express {
   const app = express();
+  const hasFrontendDist = existsSync(path.join(frontendDistPath, 'index.html'));
 
   app.use(
     cors({
@@ -108,10 +115,6 @@ export function createApp(): express.Express {
   );
   app.use(express.json({ limit: '10mb' }));
 
-  app.get('/', (_req, res) => {
-    res.json({ message: 'Resume backend is running', health: '/api/health' });
-  });
-
   app.use('/api', async (_req, res, next) => {
     try {
       await ensureDatabaseConnection(getMongoUri());
@@ -123,6 +126,18 @@ export function createApp(): express.Express {
   });
 
   app.use('/api', apiRouter);
+
+  if (hasFrontendDist) {
+    app.use(express.static(frontendDistPath));
+
+    app.get(/^(?!\/api(?:\/|$)).*/, (_req, res) => {
+      res.sendFile(path.join(frontendDistPath, 'index.html'));
+    });
+  } else {
+    app.get('/', (_req, res) => {
+      res.json({ message: 'Resume backend is running', health: '/api/health' });
+    });
+  }
 
   app.use((error: unknown, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
     if (error instanceof Error) {

@@ -60,3 +60,18 @@ Set this environment variable in Vercel before deploying:
 Optional environment variable:
 
 - `FRONTEND_ORIGIN` (comma-separated list of additional allowed origins for CORS)
+
+## Render Deployment
+
+This repository can also deploy to Render as a single Web Service from the repository root.
+
+- Build command: `npm install && npm run build`
+- Start command: `npm start`
+
+Required environment variable:
+
+- `MONGODB_URI`
+
+Optional environment variable:
+
+- `FRONTEND_ORIGIN` (set this to your Render service URL if you want to explicitly allow that origin)
