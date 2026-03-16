@@ -11,9 +11,13 @@ const localAllowedOrigins = new Set([
   'http://localhost:3000',
   'http://127.0.0.1:3000',
   'http://localhost:5173',
+  'http://127.0.0.1:5173',
+  'http://localhost:5000',
+  'http://127.0.0.1:5000',
 ]);
 
 const vercelPreviewOriginPattern = /^https:\/\/[a-z0-9-]+\.vercel\.app$/i;
+const renderOriginPattern = /^https:\/\/[a-z0-9-]+\.onrender\.com$/i;
 
 function getConfiguredAllowedOrigins(): Set<string> {
   const envValue = process.env.FRONTEND_ORIGIN;
@@ -42,6 +46,10 @@ function isAllowedOrigin(origin: string | undefined): boolean {
   }
 
   if (vercelPreviewOriginPattern.test(origin)) {
+    return true;
+  }
+
+  if (renderOriginPattern.test(origin)) {
     return true;
   }
 
@@ -100,21 +108,20 @@ export async function ensureDatabaseConnection(uri: string): Promise<void> {
 export function createApp(): express.Express {
   const app = express();
   const hasFrontendDist = existsSync(path.join(frontendDistPath, 'index.html'));
+  const apiCors = cors({
+    origin: (origin, callback) => {
+      if (isAllowedOrigin(origin)) {
+        callback(null, true);
+        return;
+      }
 
-  app.use(
-    cors({
-      origin: (origin, callback) => {
-        if (isAllowedOrigin(origin)) {
-          callback(null, true);
-          return;
-        }
+      callback(new Error(`Origin ${origin ?? 'unknown'} is not allowed by CORS.`));
+    },
+  });
 
-        callback(new Error(`Origin ${origin ?? 'unknown'} is not allowed by CORS.`));
-      },
-    })
-  );
   app.use(express.json({ limit: '10mb' }));
 
+  app.use('/api', apiCors);
   app.use('/api', async (_req, res, next) => {
     try {
       await ensureDatabaseConnection(getMongoUri());
