@@ -8,6 +8,8 @@ import {
   Linkedin,
   Mail,
   Menu,
+  MoonStar,
+  SunMedium,
   Terminal,
   Trash2,
   Upload,
@@ -38,12 +40,41 @@ const buildApiUrl = (path: string) => {
 
 const apiFetch = (path: string, init?: RequestInit) => fetch(buildApiUrl(path), init);
 const BACKEND_UNAVAILABLE_MESSAGE = 'Backend is unavailable. Start backend with `npm --prefix backend run dev` or run `npm run dev` at repo root.';
-const SECTION_SHELL_CLASS = 'mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8 py-12';
-const FORM_PANEL_CLASS = 'mb-10 rounded-[28px] border border-slate-200/80 bg-gradient-to-br from-white via-white to-blue-50/40 p-6 shadow-[0_12px_45px_-20px_rgba(15,23,42,0.35)] backdrop-blur';
-const TEXT_INPUT_CLASS = 'rounded-2xl border border-slate-200 bg-white/95 px-3.5 py-2.5 text-slate-800 placeholder:text-slate-400 shadow-sm focus:border-blue-300 focus:outline-none focus:ring-2 focus:ring-blue-100';
-const PRIMARY_BUTTON_CLASS = 'mt-4 inline-flex items-center justify-center rounded-xl bg-slate-900 px-5 py-2.5 font-bold text-white shadow-lg shadow-slate-300/40 transition-all hover:-translate-y-0.5 hover:bg-blue-600 disabled:opacity-50';
+const SECTION_SHELL_CLASS = 'mx-auto w-full max-w-7xl px-4 py-10 sm:px-6 lg:px-8';
+const PANEL_CLASS = 'rounded-[32px] border border-white/28 bg-white/18 shadow-[0_24px_80px_-28px_rgba(67,97,140,0.3)] backdrop-blur-2xl';
+const CARD_CLASS = 'rounded-[28px] border border-white/24 bg-white/16 shadow-[0_18px_60px_-30px_rgba(67,97,140,0.25)] backdrop-blur-2xl transition-all duration-300 hover:-translate-y-1 hover:border-cyan-200/40 hover:bg-white/22';
+const FORM_PANEL_CLASS = `${PANEL_CLASS} mb-10 p-6 sm:p-7`;
+const TEXT_INPUT_CLASS = 'rounded-2xl border border-white/24 bg-white/34 px-4 py-3 text-sm text-slate-800 placeholder:text-slate-500 shadow-[inset_0_1px_0_rgba(255,255,255,0.35)] outline-none transition focus:border-cyan-300/60 focus:bg-white/55 focus:ring-2 focus:ring-cyan-300/15';
+const PRIMARY_BUTTON_CLASS = 'mt-4 inline-flex items-center justify-center rounded-2xl border border-cyan-200/35 bg-gradient-to-r from-cyan-300 via-sky-300 to-blue-400 px-5 py-3 font-extrabold text-slate-900 shadow-[0_16px_40px_-18px_rgba(56,189,248,0.45)] transition hover:-translate-y-0.5 hover:brightness-105 disabled:opacity-50';
+const SECONDARY_BUTTON_CLASS = 'inline-flex items-center justify-center rounded-2xl border border-white/24 bg-white/18 px-4 py-3 text-sm font-bold text-slate-700 transition hover:border-cyan-200/40 hover:bg-white/30';
+const SECTION_LABEL_CLASS = 'mb-4 inline-flex items-center rounded-full border border-cyan-300/30 bg-cyan-300/16 px-4 py-1.5 text-[11px] font-extrabold uppercase tracking-[0.28em] text-cyan-900/80';
+const SECTION_TITLE_CLASS = 'text-4xl font-black tracking-[-0.04em] text-slate-900 md:text-5xl';
+const SECTION_COPY_CLASS = 'mt-3 max-w-2xl text-sm leading-7 text-slate-600 sm:text-base';
+const ICON_BADGE_CLASS = 'flex h-12 w-12 items-center justify-center rounded-2xl border border-white/24 bg-white/24 text-cyan-700 shadow-[inset_0_1px_0_rgba(255,255,255,0.28)]';
+const FORM_HEADING_CLASS = 'mb-2 text-lg font-extrabold text-white';
+const FORM_DESCRIPTION_CLASS = 'mb-4 text-sm leading-7 text-slate-600';
+const SOFT_SURFACE_CLASS = 'rounded-2xl border border-white/24 bg-white/18 backdrop-blur-xl';
+
+const getStaggeredMotionProps = (index: number) => ({
+  initial: { opacity: 0, y: 24, scale: 0.98 },
+  animate: { opacity: 1, y: 0, scale: 1 },
+  transition: { duration: 0.45, delay: 0.08 * index, ease: [0.22, 1, 0.36, 1] },
+});
+
+const HOME_SIGNAL_CARDS = [
+  { label: 'Focus', value: 'Full-stack and AI product work' },
+  { label: 'Base', value: 'University Malaya' },
+  { label: 'Status', value: 'Open for internship' },
+];
+
+const HOME_EDITORIAL_POINTS = [
+  'Frontend systems with a strong visual bar',
+  'Backends built for reliable CRUD and deployment',
+  'Hackathon-ready products with fast iteration loops',
+];
 
 type Role = 'admin' | 'guest';
+type ThemeMode = 'dark' | 'light';
 type Skill = { name: string; category: string };
 type WithId = { _id?: string };
 
@@ -205,6 +236,8 @@ export default function App() {
   const [role, setRole] = useState<Role | null>(null);
   const [loginEmail, setLoginEmail] = useState('');
   const [loginPassword, setLoginPassword] = useState('');
+  const [showLoginPassword, setShowLoginPassword] = useState(false);
+  const [themeMode, setThemeMode] = useState<ThemeMode>('dark');
   const [authError, setAuthError] = useState('');
 
   const [homeData, setHomeData] = useState<HomeData>(SEED_HOME);
@@ -223,6 +256,7 @@ export default function App() {
   const [saveMessage, setSaveMessage] = useState('');
 
   const isAdmin = role === 'admin';
+  const isLightTheme = themeMode === 'light';
 
   const currentEducation = useMemo(() => {
     return educationData.find((item) => /present/i.test(item.period)) ?? educationData[0] ?? SEED_EDUCATION[0];
@@ -388,6 +422,19 @@ export default function App() {
   }, []);
 
   useEffect(() => {
+    const storedTheme = window.localStorage.getItem('resume-theme');
+
+    if (storedTheme === 'dark' || storedTheme === 'light') {
+      setThemeMode(storedTheme);
+    }
+  }, []);
+
+  useEffect(() => {
+    document.documentElement.dataset.theme = themeMode;
+    window.localStorage.setItem('resume-theme', themeMode);
+  }, [themeMode]);
+
+  useEffect(() => {
     if (!role) {
       return;
     }
@@ -433,6 +480,20 @@ export default function App() {
     setRole('guest');
     setActiveTab('home');
     setSaveMessage('');
+  };
+
+  const toggleThemeMode = () => {
+    setThemeMode((current) => (current === 'dark' ? 'light' : 'dark'));
+  };
+
+  const resetSession = () => {
+    setRole(null);
+    setLoginEmail('');
+    setLoginPassword('');
+    setShowLoginPassword(false);
+    setAuthError('');
+    setSaveMessage('');
+    setIsMenuOpen(false);
   };
 
   const resetStatus = () => setSaveMessage('');
@@ -689,7 +750,7 @@ export default function App() {
     }
 
     return (
-      <div className="mb-8 rounded-2xl border border-blue-200/80 bg-gradient-to-r from-blue-50 via-sky-50 to-blue-50 p-4 text-sm font-medium text-blue-800 shadow-sm">
+      <div className="mb-8 rounded-3xl border border-cyan-300/18 bg-cyan-300/8 px-5 py-4 text-sm font-semibold text-cyan-50 shadow-[0_18px_50px_-30px_rgba(34,211,238,0.8)] backdrop-blur-xl">
         Admin mode: you can add and delete records. Changes save to MongoDB and guest view auto-refreshes.
       </div>
     );
@@ -704,8 +765,8 @@ export default function App() {
 
     return (
       <div
-        className={`mb-6 rounded-xl border p-3 text-sm shadow-sm backdrop-blur ${
-          isError ? 'border-red-100 bg-red-50 text-red-700' : 'border-emerald-100 bg-emerald-50 text-emerald-700'
+        className={`mb-6 rounded-3xl border px-5 py-4 text-sm font-semibold shadow-[0_18px_50px_-30px_rgba(8,15,30,0.8)] backdrop-blur-xl ${
+          isError ? 'border-rose-300/18 bg-rose-300/8 text-rose-100' : 'border-emerald-300/18 bg-emerald-300/8 text-emerald-100'
         }`}
       >
         {saveMessage}
@@ -722,7 +783,7 @@ export default function App() {
       <button
         onClick={() => void onDelete()}
         disabled={saving === saveKey}
-        className="inline-flex items-center gap-1 rounded-lg border border-red-200 bg-white px-2 py-1 text-xs font-bold text-red-600 hover:bg-red-50 disabled:opacity-50"
+        className="inline-flex items-center gap-1 rounded-full border border-red-500/55 bg-red-500/20 px-3 py-1.5 text-xs font-bold text-red-50 shadow-[0_10px_30px_-18px_rgba(239,68,68,0.95)] transition hover:bg-red-500/28 hover:border-red-400/70 disabled:opacity-50"
       >
         <Trash2 size={13} />
         Delete
@@ -737,44 +798,84 @@ export default function App() {
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className={SECTION_SHELL_CLASS}>
             {renderAdminNotice()}
             {renderStatus()}
-            <div className="grid gap-12 xl:grid-cols-[1.15fr_1fr] items-center">
-              <div>
-                <motion.div
-                  initial={{ opacity: 0, scale: 0.9 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  className="inline-block rounded-full border border-blue-200 bg-blue-50 px-4 py-1.5 text-xs font-bold tracking-wider text-blue-700 mb-6"
-                >
-                  {homeData.subtitle}
-                </motion.div>
-                <h1 className="text-6xl md:text-8xl font-black tracking-tighter leading-[0.85] mb-8 text-slate-900">
-                  {homeData.name.split(' ').slice(0, 1).join(' ')} <br />
-                  <span className="text-blue-600">{homeData.name.split(' ').slice(1).join(' ')}</span>
-                </h1>
-                <p className="text-xl text-slate-600 font-light leading-relaxed mb-10">{homeData.bio}</p>
-                <div className="flex flex-wrap gap-4">
-                  <button
-                    onClick={() => {
-                      setActiveTab('experience');
-                      resetStatus();
-                    }}
-                    className="group flex items-center gap-2 rounded-2xl bg-slate-900 px-8 py-4 font-bold text-white shadow-xl shadow-slate-300/40 transition-all hover:-translate-y-0.5 hover:bg-blue-600"
+            <div className="grid items-center gap-8 xl:grid-cols-[1.15fr_0.85fr]">
+              <motion.div
+                initial={{ opacity: 0, x: -30 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
+                className={`${PANEL_CLASS} relative overflow-hidden p-8 sm:p-10 lg:p-12`}
+              >
+                <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/50 to-transparent" />
+                <div className="absolute -left-16 top-8 h-40 w-40 rounded-full bg-cyan-300/10 blur-3xl" />
+                <div className="absolute -right-10 bottom-6 h-40 w-40 rounded-full bg-fuchsia-300/10 blur-3xl" />
+                <div className="relative">
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0.92 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
+                    className={SECTION_LABEL_CLASS}
                   >
-                    Explore Projects
-                    <ArrowRight size={20} className="group-hover:translate-x-1 transition-transform" />
-                  </button>
-                  <div className="flex items-center gap-4 px-4">
-                    <a href={homeData.linkedinUrl} target="_blank" className="text-slate-400 hover:text-blue-600 transition-colors" rel="noreferrer">
-                      <Linkedin size={24} />
-                    </a>
-                    <a href={`mailto:${homeData.email}`} className="text-slate-400 hover:text-blue-600 transition-colors">
-                      <Mail size={24} />
-                    </a>
+                    {homeData.subtitle}
+                  </motion.div>
+                  <div className="grid gap-8 xl:grid-cols-[1.1fr_0.9fr]">
+                    <div>
+                      <h1 className="max-w-4xl text-5xl font-black leading-[0.88] tracking-[-0.06em] text-white sm:text-6xl md:text-7xl xl:text-[5.4rem]">
+                        {homeData.name.split(' ').slice(0, 1).join(' ')} <br />
+                        <span className="bg-gradient-to-r from-cyan-200 via-sky-300 to-fuchsia-200 bg-clip-text text-transparent">
+                          {homeData.name.split(' ').slice(1).join(' ')}
+                        </span>
+                      </h1>
+                      <p className="mt-6 max-w-2xl text-base leading-8 text-slate-300 sm:text-xl">{homeData.bio}</p>
+                      <div className="mt-8 flex flex-wrap gap-4">
+                        <button
+                          onClick={() => {
+                            setActiveTab('experience');
+                            resetStatus();
+                          }}
+                          className="group inline-flex items-center gap-2 rounded-2xl border border-cyan-200/25 bg-gradient-to-r from-cyan-300 via-sky-300 to-blue-400 px-7 py-4 font-extrabold text-slate-950 shadow-[0_18px_55px_-25px_rgba(56,189,248,0.95)] transition hover:-translate-y-0.5"
+                        >
+                          Explore Projects
+                          <ArrowRight size={20} className="group-hover:translate-x-1 transition-transform" />
+                        </button>
+                        <div className="flex items-center gap-3">
+                          <a href={homeData.linkedinUrl} target="_blank" className="flex h-12 w-12 items-center justify-center rounded-2xl border border-white/14 bg-white/8 text-slate-200 transition hover:border-cyan-200/30 hover:bg-white/14 hover:text-cyan-100" rel="noreferrer">
+                            <Linkedin size={24} />
+                          </a>
+                          <a href={`mailto:${homeData.email}`} className="flex h-12 w-12 items-center justify-center rounded-2xl border border-white/14 bg-white/8 text-slate-200 transition hover:border-cyan-200/30 hover:bg-white/14 hover:text-cyan-100">
+                            <Mail size={24} />
+                          </a>
+                        </div>
+                      </div>
+                    </div>
+                    <div className={`${SOFT_SURFACE_CLASS} p-5 sm:p-6`}>
+                      <div className="space-y-3">
+                        {HOME_EDITORIAL_POINTS.map((point, index) => (
+                          <motion.div key={point} {...getStaggeredMotionProps(index)} className="rounded-2xl border border-white/10 bg-white/6 px-4 py-3">
+                            <p className="text-sm leading-6 text-slate-200">{point}</p>
+                          </motion.div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                  <div className="mt-10 grid gap-4 sm:grid-cols-3">
+                    {HOME_SIGNAL_CARDS.map((item, index) => (
+                      <motion.div key={item.label} {...getStaggeredMotionProps(index)} className="rounded-2xl border border-white/12 bg-white/8 px-4 py-4 backdrop-blur-xl">
+                        <p className="text-[11px] font-extrabold uppercase tracking-[0.22em] text-slate-400">{item.label}</p>
+                        <p className="mt-2 text-sm font-bold text-white">{item.value}</p>
+                      </motion.div>
+                    ))}
                   </div>
                 </div>
-              </div>
+              </motion.div>
               <div className="relative">
-                <div className="relative mx-auto aspect-square w-full max-w-[430px] overflow-hidden rounded-[44px] border border-slate-200 bg-[#163a63] shadow-2xl shadow-slate-300/70">
-                  <div className="absolute inset-x-0 top-0 bottom-[18%] overflow-hidden rounded-t-[44px] bg-slate-200">
+                <motion.div
+                  initial={{ opacity: 0, x: 30, rotate: 2 }}
+                  animate={{ opacity: 1, x: 0, rotate: 0 }}
+                  transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+                  className={`${PANEL_CLASS} relative mx-auto aspect-[0.9] w-full max-w-[430px] overflow-hidden rounded-[40px] p-4`}
+                >
+                  <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,#67e8f933,transparent_44%),linear-gradient(180deg,rgba(15,23,42,0.35),rgba(15,23,42,0.7))]" />
+                  <div className="absolute inset-x-4 top-4 bottom-[18%] overflow-hidden rounded-[30px] border border-white/12 bg-slate-800/60">
                     <img
                       src={PROFILE_IMAGE_SOURCES[profileImageIndex] ?? PROFILE_IMAGE_FALLBACK_SRC}
                       alt="Ham Zeng Yi portrait"
@@ -798,12 +899,11 @@ export default function App() {
                       }}
                     />
                   </div>
-                  <div className="absolute inset-x-0 bottom-0 h-[30%] bg-[#163a63]" />
-                  <div className="absolute inset-x-[-6%] bottom-[10%] h-[24%] rounded-t-[100%] bg-white" />
-                </div>
-                <div className="absolute -bottom-6 -right-4 max-w-[210px] rounded-3xl border border-slate-200 bg-white/95 p-6 shadow-xl backdrop-blur">
-                  <p className="text-[10px] font-bold text-blue-600 uppercase tracking-widest mb-2">Availability</p>
-                  <p className="text-sm font-bold text-slate-900 leading-tight">{homeData.internshipAvailability}</p>
+                  <div className="absolute inset-x-0 bottom-0 h-[32%] bg-gradient-to-t from-slate-950/90 to-transparent" />
+                </motion.div>
+                <div className="absolute -bottom-5 right-0 max-w-[220px] rounded-[28px] border border-white/16 bg-white/12 p-5 text-right shadow-[0_18px_50px_-30px_rgba(8,15,30,0.9)] backdrop-blur-2xl">
+                  <p className="text-[10px] font-extrabold uppercase tracking-[0.22em] text-cyan-100/80">Availability</p>
+                  <p className="mt-2 text-sm font-bold leading-6 text-white">{homeData.internshipAvailability}</p>
                 </div>
               </div>
             </div>
@@ -817,8 +917,8 @@ export default function App() {
 
             {isAdmin && (
               <div className={FORM_PANEL_CLASS} onPaste={handleExperiencePaste}>
-                <h3 className="mb-2 text-lg font-bold text-slate-900">Add Experience</h3>
-                <p className="mb-4 text-sm text-slate-500">You can optionally fill any info and paste/upload sijil (certificate) for guests to view.</p>
+                <h3 className={FORM_HEADING_CLASS}>Add Experience</h3>
+                <p className={FORM_DESCRIPTION_CLASS}>You can optionally fill any info and paste or upload sijil for guests to view.</p>
                 <div className="grid gap-3 md:grid-cols-2">
                   <input className={TEXT_INPUT_CLASS} placeholder="Title (optional)" value={experienceForm.title} onChange={(e) => setExperienceForm((prev) => ({ ...prev, title: e.target.value }))} />
                   <input className={TEXT_INPUT_CLASS} placeholder="Role (optional)" value={experienceForm.role} onChange={(e) => setExperienceForm((prev) => ({ ...prev, role: e.target.value }))} />
@@ -826,7 +926,7 @@ export default function App() {
                   <input className={TEXT_INPUT_CLASS} placeholder="Language (optional)" value={experienceForm.language} onChange={(e) => setExperienceForm((prev) => ({ ...prev, language: e.target.value }))} />
                 </div>
                 <textarea className={`${TEXT_INPUT_CLASS} mt-3 min-h-[90px] w-full`} placeholder="Description (optional)" value={experienceForm.description} onChange={(e) => setExperienceForm((prev) => ({ ...prev, description: e.target.value }))} />
-                <label className="mt-3 flex cursor-pointer items-center gap-2 rounded-xl border border-dashed border-slate-300 bg-white px-3 py-2 text-sm text-slate-600 transition-colors hover:border-blue-400 hover:text-blue-600">
+                <label className="mt-3 flex cursor-pointer items-center gap-2 rounded-xl border border-dashed border-white/18 bg-white/8 px-3 py-2 text-sm text-slate-300 transition-colors hover:border-cyan-300/35 hover:text-cyan-100">
                   <Upload size={16} />
                   <span>{experienceForm.certificateName || 'Upload or paste sijil (jpg, png, pdf)'}</span>
                   <input
@@ -841,13 +941,13 @@ export default function App() {
                   />
                 </label>
                 {experienceForm.certificateDataUrl && (
-                  <div className="mt-2 flex items-center gap-3 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs text-slate-600">
+                  <div className="mt-2 flex items-center gap-3 rounded-xl border border-white/12 bg-slate-950/25 px-3 py-2 text-xs text-slate-300">
                     <FileText size={14} />
                     <span className="truncate">{experienceForm.certificateName || 'Certificate attached'}</span>
                     <button
                       type="button"
                       onClick={() => setExperienceForm((prev) => ({ ...prev, certificateDataUrl: '', certificateName: '' }))}
-                      className="ml-auto rounded-md border border-slate-300 px-2 py-1 text-[11px] font-semibold text-slate-600 hover:bg-white"
+                      className="ml-auto rounded-md border border-white/12 px-2 py-1 text-[11px] font-semibold text-slate-200 transition hover:bg-white/10"
                     >
                       Remove
                     </button>
@@ -859,27 +959,29 @@ export default function App() {
               </div>
             )}
 
-            <div className="mb-12">
-              <h2 className="text-4xl font-black tracking-tighter text-slate-900 mb-4">Competition Experience</h2>
-              <p className="text-slate-500 font-light">Technical projects developed during hackathons and competitions.</p>
+            <div className="mb-10">
+              <p className={SECTION_LABEL_CLASS}>Experience</p>
+              <h2 className={SECTION_TITLE_CLASS}>Competition Experience</h2>
+              <p className={SECTION_COPY_CLASS}>Technical projects developed during hackathons and competitions.</p>
             </div>
             <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
               {experiences.map((exp, index) => (
-                <div key={exp._id ?? `${exp.title}-${index}`} className="group rounded-[32px] border border-slate-200 bg-gradient-to-br from-white to-slate-50/50 p-8 shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-xl">
+                <motion.div key={exp._id ?? `${exp.title}-${index}`} {...getStaggeredMotionProps(index)}>
+                  <div className={`${CARD_CLASS} group p-8`}>
                   <div className="mb-6 flex justify-between items-start gap-3">
-                    <div className="w-12 h-12 rounded-2xl bg-white flex items-center justify-center text-blue-600 shadow-md shadow-slate-200/60">
+                    <div className={ICON_BADGE_CLASS}>
                       <Terminal size={24} />
                     </div>
                     <div className="text-right">
-                      <span className="block text-[10px] font-bold text-slate-400 uppercase tracking-widest">{exp.date}</span>
+                      <span className="block text-[10px] font-extrabold uppercase tracking-[0.22em] text-slate-400">{exp.date}</span>
                       {renderDeleteButton(() => handleDeleteExperience(exp._id), `experience-delete-${exp._id ?? ''}`)}
                     </div>
                   </div>
-                  <h3 className="text-xl font-bold text-slate-900 mb-1">{exp.title}</h3>
-                  <p className="text-blue-600 font-bold text-xs mb-4">{exp.role}</p>
-                  <p className="text-slate-600 text-sm leading-relaxed mb-6 font-light">{exp.description}</p>
+                  <h3 className="mb-1 text-xl font-extrabold text-white">{exp.title}</h3>
+                  <p className="mb-4 text-xs font-extrabold uppercase tracking-[0.18em] text-cyan-100/85">{exp.role}</p>
+                  <p className="mb-6 text-sm leading-7 text-slate-300">{exp.description}</p>
                   {exp.certificateDataUrl && (
-                    <div className="mb-5 rounded-2xl border border-slate-200 bg-white p-3">
+                    <div className="mb-5 rounded-2xl border border-white/12 bg-slate-950/25 p-3 backdrop-blur-xl">
                       {exp.certificateDataUrl.startsWith('data:image') && (
                         <img
                           src={exp.certificateDataUrl}
@@ -891,18 +993,19 @@ export default function App() {
                         href={exp.certificateDataUrl}
                         target="_blank"
                         rel="noreferrer"
-                        className="inline-flex items-center gap-2 rounded-lg border border-blue-200 bg-blue-50 px-3 py-2 text-xs font-bold text-blue-700 hover:bg-blue-100"
+                        className="inline-flex items-center gap-2 rounded-xl border border-cyan-200/20 bg-cyan-300/10 px-3 py-2 text-xs font-bold text-cyan-100 transition hover:bg-cyan-300/16"
                       >
                         <FileText size={14} />
                         View Sijil{exp.certificateName ? `: ${exp.certificateName}` : ''}
                       </a>
                     </div>
                   )}
-                  <div className="flex items-center gap-2 pt-4 border-t border-slate-200">
+                  <div className="flex items-center gap-2 border-t border-white/10 pt-4">
                     <Cpu size={14} className="text-slate-400" />
-                    <span className="text-xs font-mono font-bold text-slate-500">{exp.language}</span>
+                    <span className="text-xs font-mono font-bold text-slate-300">{exp.language}</span>
                   </div>
-                </div>
+                  </div>
+                </motion.div>
               ))}
             </div>
           </motion.div>
@@ -915,7 +1018,7 @@ export default function App() {
 
             {isAdmin && (
               <div className={FORM_PANEL_CLASS}>
-                <h3 className="mb-4 text-lg font-bold text-slate-900">Add Committee Entry</h3>
+                <h3 className={FORM_HEADING_CLASS}>Add Committee Entry</h3>
                 <div className="grid gap-3 md:grid-cols-3">
                   <input className={TEXT_INPUT_CLASS} placeholder="Title" value={committeeForm.title} onChange={(e) => setCommitteeForm((prev) => ({ ...prev, title: e.target.value }))} />
                   <input className={TEXT_INPUT_CLASS} placeholder="Role" value={committeeForm.role} onChange={(e) => setCommitteeForm((prev) => ({ ...prev, role: e.target.value }))} />
@@ -927,23 +1030,26 @@ export default function App() {
               </div>
             )}
 
-            <div className="mb-12">
-              <h2 className="text-4xl font-black tracking-tighter text-slate-900 mb-4">Committee Roles</h2>
-              <p className="text-slate-500 font-light">Leadership and organizational contributions to the university community.</p>
+            <div className="mb-10">
+              <p className={SECTION_LABEL_CLASS}>Committee</p>
+              <h2 className={SECTION_TITLE_CLASS}>Committee Roles</h2>
+              <p className={SECTION_COPY_CLASS}>Leadership and organizational contributions to the university community.</p>
             </div>
             <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
               {committeeExperiences.map((exp, index) => (
-                <div key={exp._id ?? `${exp.title}-${index}`} className="rounded-3xl border border-slate-200 bg-gradient-to-br from-white to-slate-50 p-8 text-center shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-lg">
+                <motion.div key={exp._id ?? `${exp.title}-${index}`} {...getStaggeredMotionProps(index)}>
+                  <div className={`${CARD_CLASS} p-8 text-center`}>
                   <div className="mb-6 flex justify-between items-start gap-2">
-                    <div className="w-12 h-12 rounded-full bg-blue-50 flex items-center justify-center text-blue-600 mx-auto">
+                    <div className={`${ICON_BADGE_CLASS} mx-auto rounded-full`}>
                       <Users size={24} />
                     </div>
                     {renderDeleteButton(() => handleDeleteCommittee(exp._id), `committee-delete-${exp._id ?? ''}`)}
                   </div>
-                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">{exp.date}</p>
-                  <h3 className="font-bold text-slate-900 mb-1">{exp.title}</h3>
-                  <p className="text-xs text-blue-600 font-medium">{exp.role}</p>
-                </div>
+                  <p className="mb-2 text-[10px] font-extrabold uppercase tracking-[0.22em] text-slate-400">{exp.date}</p>
+                  <h3 className="mb-1 font-extrabold text-white">{exp.title}</h3>
+                  <p className="text-xs font-semibold uppercase tracking-[0.18em] text-cyan-100/85">{exp.role}</p>
+                  </div>
+                </motion.div>
               ))}
             </div>
           </motion.div>
@@ -956,7 +1062,7 @@ export default function App() {
 
             {isAdmin && (
               <div className={FORM_PANEL_CLASS}>
-                <h3 className="mb-4 text-lg font-bold text-slate-900">Add Achievement</h3>
+                <h3 className={FORM_HEADING_CLASS}>Add Achievement</h3>
                 <div className="grid gap-3 md:grid-cols-2">
                   <input className={TEXT_INPUT_CLASS} placeholder="Title" value={achievementForm.title} onChange={(e) => setAchievementForm((prev) => ({ ...prev, title: e.target.value }))} />
                   <input className={TEXT_INPUT_CLASS} placeholder="Status" value={achievementForm.status} onChange={(e) => setAchievementForm((prev) => ({ ...prev, status: e.target.value }))} />
@@ -971,45 +1077,48 @@ export default function App() {
               </div>
             )}
 
-            <div className="mb-12">
-              <h2 className="text-4xl font-black tracking-tighter text-slate-900 mb-4">Achievements</h2>
-              <p className="text-slate-500 font-light">Key milestones and recognitions in technical competitions.</p>
+            <div className="mb-10">
+              <p className={SECTION_LABEL_CLASS}>Achievements</p>
+              <h2 className={SECTION_TITLE_CLASS}>Achievements</h2>
+              <p className={SECTION_COPY_CLASS}>Key milestones and recognitions in technical competitions.</p>
             </div>
             <div className="space-y-8">
               {achievements.map((ach, index) => (
-                <div key={ach._id ?? `${ach.title}-${index}`} className="group relative overflow-hidden rounded-[32px] border border-slate-200 bg-gradient-to-br from-white to-slate-50 p-8 shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-xl">
-                  <div className="absolute top-0 right-0 w-32 h-32 bg-blue-50 rounded-bl-[100px] -z-0 opacity-50 group-hover:bg-blue-100 transition-colors" />
+                <motion.div key={ach._id ?? `${ach.title}-${index}`} {...getStaggeredMotionProps(index)}>
+                  <div className={`${CARD_CLASS} group relative overflow-hidden p-8`}>
+                  <div className="absolute right-0 top-0 h-32 w-32 rounded-bl-[100px] bg-cyan-300/10 -z-0 opacity-80 transition-colors group-hover:bg-fuchsia-300/12" />
                   <div className="relative z-10">
                     <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-8">
                       <div className="flex items-center gap-4">
-                        <div className="w-14 h-14 rounded-2xl bg-amber-50 flex items-center justify-center text-amber-500 shadow-sm">
+                        <div className="flex h-14 w-14 items-center justify-center rounded-2xl border border-white/14 bg-white/10 text-cyan-100 shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]">
                           <Award size={28} />
                         </div>
                         <div>
-                          <h3 className="text-2xl font-bold text-slate-900">{ach.title}</h3>
-                          <p className="text-blue-600 font-bold text-sm uppercase tracking-wider">{ach.status}</p>
+                          <h3 className="text-2xl font-extrabold text-white">{ach.title}</h3>
+                          <p className="text-sm font-extrabold uppercase tracking-[0.18em] text-cyan-100/85">{ach.status}</p>
                         </div>
                       </div>
                       <div className="md:text-right flex flex-col items-end gap-2">
-                        <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">{ach.date}</span>
+                        <span className="text-xs font-extrabold uppercase tracking-[0.22em] text-slate-400">{ach.date}</span>
                         {renderDeleteButton(() => handleDeleteAchievement(ach._id), `achievement-delete-${ach._id ?? ''}`)}
                       </div>
                     </div>
 
-                    <p className="text-slate-600 font-light leading-relaxed mb-8 max-w-3xl">{ach.description}</p>
+                    <p className="mb-8 max-w-3xl leading-7 text-slate-300">{ach.description}</p>
 
-                    <div className="flex flex-wrap gap-8 pt-6 border-t border-slate-100">
+                    <div className="flex flex-wrap gap-8 border-t border-white/10 pt-6">
                       <div>
-                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Role</p>
-                        <p className="text-sm font-bold text-slate-700">{ach.role}</p>
+                        <p className="mb-1 text-[10px] font-extrabold uppercase tracking-[0.22em] text-slate-400">Role</p>
+                        <p className="text-sm font-bold text-white">{ach.role}</p>
                       </div>
                       <div>
-                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Stack/Field</p>
-                        <p className="text-sm font-bold text-slate-700">{ach.language}</p>
+                        <p className="mb-1 text-[10px] font-extrabold uppercase tracking-[0.22em] text-slate-400">Stack/Field</p>
+                        <p className="text-sm font-bold text-white">{ach.language}</p>
                       </div>
                     </div>
                   </div>
-                </div>
+                  </div>
+                </motion.div>
               ))}
             </div>
           </motion.div>
@@ -1022,7 +1131,7 @@ export default function App() {
 
             {isAdmin && (
               <div className={FORM_PANEL_CLASS}>
-                <h3 className="mb-4 text-lg font-bold text-slate-900">Add Education</h3>
+                <h3 className={FORM_HEADING_CLASS}>Add Education</h3>
                 <div className="grid gap-3 md:grid-cols-2">
                   <input className={TEXT_INPUT_CLASS} placeholder="University" value={educationForm.university} onChange={(e) => setEducationForm((prev) => ({ ...prev, university: e.target.value }))} />
                   <input className={TEXT_INPUT_CLASS} placeholder="Degree" value={educationForm.degree} onChange={(e) => setEducationForm((prev) => ({ ...prev, degree: e.target.value }))} />
@@ -1038,46 +1147,47 @@ export default function App() {
 
             <div className="grid gap-12 lg:grid-cols-2">
               <div>
-                <h2 className="text-4xl font-black tracking-tighter text-slate-900 mb-12">Education</h2>
-                <div className="rounded-[40px] border border-slate-200 bg-gradient-to-br from-white to-slate-50 p-8 shadow-sm">
+                <p className={SECTION_LABEL_CLASS}>Education</p>
+                <h2 className={`${SECTION_TITLE_CLASS} mb-12`}>Education</h2>
+                <div className={`${PANEL_CLASS} p-8`}>
                   <div className="flex items-center gap-4 mb-6">
-                    <div className="w-12 h-12 rounded-2xl bg-white flex items-center justify-center text-blue-600 shadow-sm">
+                    <div className={ICON_BADGE_CLASS}>
                       <BookOpen size={24} />
                     </div>
                     <div>
-                      <p className="text-xs font-bold text-blue-600 uppercase tracking-widest">{currentEducation.period}</p>
-                      <h3 className="text-xl font-bold text-slate-900">{currentEducation.university}</h3>
+                      <p className="text-xs font-extrabold uppercase tracking-[0.22em] text-cyan-100/85">{currentEducation.period}</p>
+                      <h3 className="text-xl font-extrabold text-white">{currentEducation.university}</h3>
                     </div>
                   </div>
-                  <p className="text-lg text-slate-700 mb-6">{currentEducation.degree}</p>
-                  <div className="flex items-center gap-3 p-4 bg-white rounded-2xl border border-slate-100">
-                    <Award size={20} className="text-amber-500" />
-                    <p className="font-bold text-slate-900">CGPA: {currentEducation.cgpa}</p>
+                  <p className="mb-6 text-lg text-slate-300">{currentEducation.degree}</p>
+                  <div className="flex items-center gap-3 rounded-2xl border border-white/12 bg-slate-950/20 p-4">
+                    <Award size={20} className="text-cyan-100" />
+                    <p className="font-bold text-white">CGPA: {currentEducation.cgpa}</p>
                   </div>
                 </div>
 
                 {additionalEducation.length > 0 && (
-                  <div className="mt-6 space-y-3 rounded-3xl border border-slate-200 bg-white p-4 shadow-sm">
-                    <p className="text-sm font-bold text-slate-800">More Education</p>
+                  <div className={`${PANEL_CLASS} mt-6 space-y-3 p-4`}>
+                    <p className="text-sm font-bold text-white">More Education</p>
                     {additionalEducation.map((item, index) => (
-                      <div key={item._id ?? `${item.university}-${index}`} className="rounded-xl border border-slate-100 bg-slate-50 px-4 py-3">
-                        <p className="text-xs font-bold text-blue-600 uppercase tracking-widest">{item.period}</p>
-                        <p className="text-base font-bold text-slate-900">{item.university}</p>
-                        <p className="text-sm text-slate-700">{item.degree}</p>
-                        <p className="mt-1 text-sm font-semibold text-slate-800">CGPA: {item.cgpa}</p>
-                      </div>
+                      <motion.div key={item._id ?? `${item.university}-${index}`} {...getStaggeredMotionProps(index)} className="rounded-2xl border border-white/12 bg-white/8 px-4 py-3 backdrop-blur-xl">
+                        <p className="text-xs font-extrabold uppercase tracking-[0.22em] text-cyan-100/85">{item.period}</p>
+                        <p className="text-base font-bold text-white">{item.university}</p>
+                        <p className="text-sm text-slate-300">{item.degree}</p>
+                        <p className="mt-1 text-sm font-semibold text-slate-100">CGPA: {item.cgpa}</p>
+                      </motion.div>
                     ))}
                   </div>
                 )}
 
                 {isAdmin && (
-                  <div className="mt-6 space-y-3 rounded-3xl border border-slate-200 bg-white p-4 shadow-sm">
-                    <p className="text-sm font-bold text-slate-800">Existing education entries</p>
+                  <div className={`${PANEL_CLASS} mt-6 space-y-3 p-4`}>
+                    <p className="text-sm font-bold text-white">Existing education entries</p>
                     {educationData.map((item, index) => (
-                      <div key={item._id ?? `${item.university}-${index}`} className="flex items-center justify-between rounded-xl border border-slate-100 bg-slate-50 px-3 py-2">
+                      <div key={item._id ?? `${item.university}-${index}`} className="flex items-center justify-between rounded-2xl border border-white/12 bg-white/8 px-3 py-3">
                         <div>
-                          <p className="text-sm font-bold text-slate-800">{item.university}</p>
-                          <p className="text-xs text-slate-500">{item.degree}</p>
+                          <p className="text-sm font-bold text-white">{item.university}</p>
+                          <p className="text-xs text-slate-400">{item.degree}</p>
                         </div>
                         {renderDeleteButton(() => handleDeleteEducation(item._id), `education-delete-${item._id ?? ''}`)}
                       </div>
@@ -1086,13 +1196,14 @@ export default function App() {
                 )}
               </div>
               <div>
-                <h2 className="text-4xl font-black tracking-tighter text-slate-900 mb-12">Technical Skills</h2>
+                <p className={SECTION_LABEL_CLASS}>Stack</p>
+                <h2 className={`${SECTION_TITLE_CLASS} mb-12`}>Technical Skills</h2>
                 <div className="flex flex-wrap gap-3">
                   {skills.map((skill, index) => (
-                    <div key={`${skill.name}-${index}`} className="rounded-2xl border border-slate-200 bg-white px-5 py-3 shadow-sm transition-all hover:-translate-y-0.5 hover:border-blue-200 hover:shadow-md">
-                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">{skill.category}</p>
-                      <p className="font-bold text-slate-800">{skill.name}</p>
-                    </div>
+                    <motion.div key={`${skill.name}-${index}`} {...getStaggeredMotionProps(index)} className="rounded-2xl border border-white/12 bg-white/8 px-5 py-4 shadow-[0_18px_50px_-35px_rgba(8,15,30,0.85)] backdrop-blur-xl transition hover:-translate-y-0.5 hover:border-cyan-200/25 hover:bg-white/12">
+                      <p className="mb-1 text-[10px] font-extrabold uppercase tracking-[0.22em] text-slate-400">{skill.category}</p>
+                      <p className="font-bold text-white">{skill.name}</p>
+                    </motion.div>
                   ))}
                 </div>
               </div>
@@ -1106,20 +1217,29 @@ export default function App() {
 
   if (!role) {
     return (
-      <div className="min-h-screen bg-[radial-gradient(circle_at_top_right,#bfdbfe,transparent_45%),radial-gradient(circle_at_bottom_left,#cbd5e1,transparent_40%),#f8fafc] px-6 py-10 text-slate-900">
-        <div className="mx-auto max-w-5xl rounded-[36px] border border-slate-200/80 bg-white/90 p-8 shadow-2xl shadow-slate-200/80 backdrop-blur md:p-12">
-          <div className="grid gap-10 md:grid-cols-2 md:items-center">
-            <div>
-              <p className="mb-3 text-xs font-bold uppercase tracking-[0.25em] text-blue-700">Resume Portal</p>
-              <h1 className="mb-4 text-4xl font-black tracking-tight text-slate-900 md:text-5xl">Welcome Back</h1>
-              <p className="text-slate-600 leading-relaxed">
+      <div className="relative min-h-screen overflow-hidden px-6 py-10 text-slate-100">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(34,211,238,0.16),transparent_28%),radial-gradient(circle_at_75%_18%,rgba(244,114,182,0.12),transparent_22%),linear-gradient(135deg,rgba(255,255,255,0.03),transparent_42%)]" />
+        <div className="relative mx-auto max-w-6xl rounded-[40px] border border-white/14 bg-white/8 p-6 shadow-[0_30px_90px_-35px_rgba(8,15,30,0.92)] backdrop-blur-2xl md:p-10">
+          <div className="grid gap-8 lg:grid-cols-[1.1fr_0.9fr] lg:items-stretch">
+            <motion.div initial={{ opacity: 0, x: -24 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }} className="rounded-[32px] border border-white/24 bg-white/16 p-8 md:p-10">
+              <p className={SECTION_LABEL_CLASS}>Resume Portal</p>
+              <p className="mt-6 max-w-xl leading-8 text-slate-300">
                 Sign in as admin to manage experience, achievements, committee, and education data with direct MongoDB saves,
                 or continue as guest for read-only browsing.
               </p>
-            </div>
+            </motion.div>
 
-            <div className="rounded-3xl border border-slate-200/80 bg-white/95 p-6 shadow-xl shadow-slate-200/60 backdrop-blur">
-              <h2 className="mb-4 text-lg font-bold text-slate-900">Login</h2>
+            <motion.div initial={{ opacity: 0, x: 24 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }} className="rounded-[32px] border border-white/24 bg-white/22 p-6 shadow-[0_24px_70px_-40px_rgba(56,189,248,0.35)] backdrop-blur-2xl md:p-8">
+              <div className="mb-6 flex items-center justify-between gap-4">
+                <div>
+                  <p className="text-[11px] font-extrabold uppercase tracking-[0.24em] text-cyan-900/70">Access</p>
+                  <h2 className="mt-2 text-2xl font-black tracking-[-0.04em] text-slate-900">Login</h2>
+                </div>
+                <button type="button" onClick={toggleThemeMode} className="inline-flex items-center gap-2 rounded-full border border-white/24 bg-white/28 px-3 py-2 text-xs font-bold text-slate-700 transition hover:border-cyan-200/40 hover:bg-white/36">
+                  {isLightTheme ? <MoonStar size={14} /> : <SunMedium size={14} />}
+                  {isLightTheme ? 'Dark Mode' : 'Light Mode'}
+                </button>
+              </div>
               <div className="space-y-3">
                 <input
                   type="email"
@@ -1129,24 +1249,31 @@ export default function App() {
                   placeholder="Email"
                 />
                 <input
-                  type="password"
+                  type={showLoginPassword ? 'text' : 'password'}
                   value={loginPassword}
                   onChange={(e) => setLoginPassword(e.target.value)}
                   className={`${TEXT_INPUT_CLASS} w-full`}
                   placeholder="Password"
                 />
-                {authError && <p className="text-sm font-medium text-red-600">{authError}</p>}
-                <button onClick={handleAdminLogin} className="w-full rounded-xl bg-slate-900 py-2.5 font-bold text-white shadow-lg shadow-slate-300/40 transition-all hover:-translate-y-0.5 hover:bg-blue-700">
+                <button
+                  type="button"
+                  onClick={() => setShowLoginPassword((current) => !current)}
+                  className={SECONDARY_BUTTON_CLASS}
+                >
+                  {showLoginPassword ? 'Hide Password' : 'Show Password'}
+                </button>
+                {authError && <p className="text-sm font-medium text-rose-600">{authError}</p>}
+                <button onClick={handleAdminLogin} className={`${PRIMARY_BUTTON_CLASS} mt-2 w-full`}>
                   Login
                 </button>
               </div>
 
-              <div className="my-5 border-t border-slate-200" />
+              <div className="my-5 border-t border-white/10" />
 
-              <button onClick={handleGuestEntry} className="w-full rounded-xl border border-slate-300 bg-white py-2.5 font-bold text-slate-800 hover:border-blue-300 hover:text-blue-700">
+              <button onClick={handleGuestEntry} className={`${SECONDARY_BUTTON_CLASS} w-full`}>
                 Continue as Guest
               </button>
-            </div>
+            </motion.div>
           </div>
         </div>
       </div>
@@ -1154,9 +1281,10 @@ export default function App() {
   }
 
   return (
-    <div className="min-h-screen bg-[radial-gradient(circle_at_top_left,#dbeafe66,transparent_45%),radial-gradient(circle_at_bottom_right,#e2e8f066,transparent_40%),#ffffff] text-slate-900 font-sans selection:bg-blue-100 selection:text-blue-900">
-      <nav className="fixed left-0 right-0 top-0 z-50 border-b border-slate-200/80 bg-white/80 backdrop-blur-xl">
-        <div className="mx-auto flex h-20 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen text-slate-100 font-sans">
+      <div className={`fixed inset-0 -z-10 transition-all duration-500 ${isLightTheme ? 'bg-[radial-gradient(circle_at_18%_12%,rgba(251,191,36,0.08),transparent_24%),radial-gradient(circle_at_82%_16%,rgba(244,114,182,0.08),transparent_22%),radial-gradient(circle_at_24%_82%,rgba(56,189,248,0.08),transparent_22%)]' : 'bg-[radial-gradient(circle_at_20%_10%,rgba(34,211,238,0.18),transparent_24%),radial-gradient(circle_at_80%_15%,rgba(244,114,182,0.12),transparent_20%),radial-gradient(circle_at_25%_85%,rgba(59,130,246,0.14),transparent_24%)]'}`} />
+      <nav className="fixed left-0 right-0 top-0 z-50 px-4 pt-4 sm:px-6 lg:px-8">
+        <div className="mx-auto flex h-20 max-w-7xl items-center justify-between rounded-[28px] border border-white/14 bg-slate-950/30 px-4 shadow-[0_18px_60px_-30px_rgba(8,15,30,0.95)] backdrop-blur-2xl sm:px-6 lg:px-8">
           <div
             className="flex items-center gap-2 cursor-pointer group"
             onClick={() => {
@@ -1164,13 +1292,13 @@ export default function App() {
               resetStatus();
             }}
           >
-            <div className="w-10 h-10 bg-slate-900 rounded-xl flex items-center justify-center text-white font-bold text-xl group-hover:bg-blue-600 transition-colors">
+            <div className="flex h-11 w-11 items-center justify-center rounded-2xl border border-cyan-200/20 bg-gradient-to-br from-cyan-300 to-blue-500 text-slate-950 font-black text-xl shadow-[0_12px_30px_-18px_rgba(56,189,248,0.95)] transition group-hover:scale-105">
               H
             </div>
-            <span className="font-black text-xl tracking-tighter">{homeData.name}</span>
+            <span className="font-black text-lg tracking-[-0.04em] text-white sm:text-xl">{homeData.name}</span>
           </div>
 
-          <div className="hidden md:flex items-center gap-2 rounded-2xl border border-slate-200 bg-white/90 p-1 shadow-sm">
+          <div className="hidden md:flex items-center gap-2 rounded-2xl border border-white/10 bg-white/6 p-1 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]">
             {navItems.map((item) => (
               <button
                 key={item.id}
@@ -1178,8 +1306,10 @@ export default function App() {
                   setActiveTab(item.id);
                   resetStatus();
                 }}
-                className={`flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-bold transition-all ${
-                  activeTab === item.id ? 'bg-slate-100 text-blue-600 shadow-sm' : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900'
+                className={`flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-bold transition-all duration-300 ${
+                  activeTab === item.id
+                    ? 'scale-110 bg-white/14 text-cyan-100 shadow-[0_10px_30px_-18px_rgba(255,255,255,0.5)]'
+                    : 'text-slate-300 hover:scale-105 hover:bg-white/10 hover:text-white'
                 }`}
               >
                 <item.icon size={16} />
@@ -1189,24 +1319,26 @@ export default function App() {
           </div>
 
           <div className="hidden md:flex items-center gap-3">
-            <span className={`rounded-full px-3 py-1 text-xs font-bold ${isAdmin ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-700'}`}>
+            <button
+              type="button"
+              onClick={toggleThemeMode}
+              className="inline-flex items-center gap-2 rounded-2xl border border-white/12 px-4 py-2 text-xs font-bold text-slate-100 transition hover:border-cyan-200/30 hover:bg-white/10"
+            >
+              {isLightTheme ? <MoonStar size={14} /> : <SunMedium size={14} />}
+              {isLightTheme ? 'Dark' : 'Light'}
+            </button>
+            <span className={`rounded-full border px-3 py-1 text-xs font-bold ${isAdmin ? 'border-emerald-300/20 bg-emerald-300/10 text-emerald-100' : 'border-white/12 bg-white/8 text-slate-200'}`}>
               {isAdmin ? 'ADMIN' : 'GUEST'}
             </span>
             <button
-              onClick={() => {
-                setRole(null);
-                setLoginEmail('');
-                setLoginPassword('');
-                setAuthError('');
-                setSaveMessage('');
-              }}
-              className="rounded-xl border border-slate-200 px-3 py-1.5 text-xs font-bold text-slate-700 hover:border-blue-200 hover:text-blue-700"
+              onClick={resetSession}
+              className="rounded-2xl border border-white/12 px-4 py-2 text-xs font-bold text-slate-200 transition hover:border-cyan-200/30 hover:bg-white/10 hover:text-white"
             >
               Logout
             </button>
           </div>
 
-          <button className="md:hidden p-2" onClick={() => setIsMenuOpen(!isMenuOpen)}>
+          <button className="rounded-xl border border-white/10 bg-white/8 p-2 text-slate-100 md:hidden" onClick={() => setIsMenuOpen(!isMenuOpen)}>
             {isMenuOpen ? <X /> : <Menu />}
           </button>
         </div>
@@ -1217,7 +1349,7 @@ export default function App() {
               initial={{ opacity: 0, y: -20 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -20 }}
-              className="md:hidden bg-white border-t border-slate-100 p-6 flex flex-col gap-4"
+              className="mx-4 mt-3 flex flex-col gap-4 rounded-[28px] border border-white/14 bg-slate-950/50 p-6 shadow-[0_18px_60px_-30px_rgba(8,15,30,0.95)] backdrop-blur-2xl md:hidden"
             >
               {navItems.map((item) => (
                 <button
@@ -1227,23 +1359,21 @@ export default function App() {
                     setIsMenuOpen(false);
                     resetStatus();
                   }}
-                  className={`flex items-center gap-3 text-lg font-bold p-3 rounded-2xl ${
-                    activeTab === item.id ? 'bg-blue-50 text-blue-600' : 'text-slate-600'
+                  className={`flex items-center gap-3 rounded-2xl p-3 text-lg font-bold transition-all duration-300 ${
+                    activeTab === item.id ? 'scale-105 bg-white/14 text-cyan-100 shadow-[0_10px_30px_-18px_rgba(255,255,255,0.45)]' : 'text-slate-200 hover:scale-[1.03] hover:bg-white/10'
                   }`}
                 >
                   <item.icon size={20} />
                   {item.label}
                 </button>
               ))}
+              <button type="button" onClick={toggleThemeMode} className="inline-flex items-center justify-center gap-2 rounded-2xl border border-white/12 px-3 py-2 text-sm font-bold text-slate-100">
+                {isLightTheme ? <MoonStar size={16} /> : <SunMedium size={16} />}
+                {isLightTheme ? 'Dark Mode' : 'Light Mode'}
+              </button>
               <button
-                onClick={() => {
-                  setRole(null);
-                  setLoginEmail('');
-                  setLoginPassword('');
-                  setAuthError('');
-                  setSaveMessage('');
-                }}
-                className="rounded-xl border border-slate-200 px-3 py-2 text-sm font-bold text-slate-700"
+                onClick={resetSession}
+                className="rounded-2xl border border-white/12 px-3 py-2 text-sm font-bold text-slate-100"
               >
                 Logout
               </button>
@@ -1252,7 +1382,7 @@ export default function App() {
         </AnimatePresence>
       </nav>
 
-      <main className="min-h-[calc(100vh-80px)] pb-20 pt-28">
+      <main className="min-h-[calc(100vh-80px)] pb-20 pt-32">
         <AnimatePresence mode="wait">
           <motion.div key={activeTab} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.3 }}>
             {renderContent()}
@@ -1260,29 +1390,29 @@ export default function App() {
         </AnimatePresence>
       </main>
 
-      <footer className="border-t border-slate-200/80 bg-white/90 py-12 px-6 backdrop-blur">
+      <footer className="px-6 py-12">
         <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-8 md:flex-row">
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 bg-slate-900 rounded-lg flex items-center justify-center text-white font-bold text-sm">H</div>
-            <span className="font-bold text-slate-900">{homeData.name}</span>
+            <div className="flex h-8 w-8 items-center justify-center rounded-xl border border-cyan-200/20 bg-gradient-to-br from-cyan-300 to-blue-500 text-sm font-black text-slate-950">H</div>
+            <span className="font-bold text-white">{homeData.name}</span>
           </div>
 
           <div className="flex items-center gap-8 text-sm font-bold text-slate-400">
-            <button onClick={() => setActiveTab('home')} className="hover:text-blue-600 transition-colors">Home</button>
-            <button onClick={() => setActiveTab('experience')} className="hover:text-blue-600 transition-colors">Experience</button>
-            <button onClick={() => setActiveTab('achievements')} className="hover:text-blue-600 transition-colors">Achievements</button>
+            <button onClick={() => setActiveTab('home')} className={`transition-all duration-300 hover:text-cyan-100 ${activeTab === 'home' ? 'scale-110 text-cyan-100' : ''}`}>Home</button>
+            <button onClick={() => setActiveTab('experience')} className={`transition-all duration-300 hover:text-cyan-100 ${activeTab === 'experience' ? 'scale-110 text-cyan-100' : ''}`}>Experience</button>
+            <button onClick={() => setActiveTab('achievements')} className={`transition-all duration-300 hover:text-cyan-100 ${activeTab === 'achievements' ? 'scale-110 text-cyan-100' : ''}`}>Achievements</button>
           </div>
 
           <div className="flex items-center gap-4">
-            <a href={homeData.linkedinUrl} target="_blank" className="w-10 h-10 rounded-full bg-white border border-slate-200 flex items-center justify-center text-slate-400 hover:text-blue-600 hover:border-blue-200 transition-all" rel="noreferrer">
+            <a href={homeData.linkedinUrl} target="_blank" className="flex h-10 w-10 items-center justify-center rounded-full border border-white/12 bg-white/8 text-slate-300 transition-all hover:border-cyan-200/30 hover:text-cyan-100" rel="noreferrer">
               <Linkedin size={18} />
             </a>
-            <a href={`mailto:${homeData.email}`} className="w-10 h-10 rounded-full bg-white border border-slate-200 flex items-center justify-center text-slate-400 hover:text-blue-600 hover:border-blue-200 transition-all">
+            <a href={`mailto:${homeData.email}`} className="flex h-10 w-10 items-center justify-center rounded-full border border-white/12 bg-white/8 text-slate-300 transition-all hover:border-cyan-200/30 hover:text-cyan-100">
               <Mail size={18} />
             </a>
           </div>
         </div>
-        <div className="max-w-7xl mx-auto mt-12 pt-8 border-t border-slate-200 text-center text-xs text-slate-400">
+        <div className="mx-auto mt-12 max-w-7xl border-t border-white/10 pt-8 text-center text-xs text-slate-400">
           <p>© 2026 Ham Zeng Yi. Professional Portfolio Website.</p>
         </div>
       </footer>
